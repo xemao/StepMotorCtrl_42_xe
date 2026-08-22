@@ -68,6 +68,8 @@ static Motor_Config_t motor_config;
 static uint16_t defaultNodeID = 1;
 /* USER CODE END PV */
 
+uint8_t tele_cnt = 0;
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
@@ -214,6 +216,20 @@ int main(void)
             EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
             HAL_NVIC_SystemReset();
         }
+        
+        
+
+    /* 上位机数据发送 */
+        if (tele_cnt >= 10)
+        {
+            tele_cnt = 0;
+            float pos = Motor_GetPosition(false);
+            float vel = Motor_GetVelocity();
+            float cur = Motor_GetCurrent();
+            uint8_t mode = Motor_GetMode();
+            uint8_t state = Motor_GetState();
+            printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state);//这个函数太耗时，转不快
+        }
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
@@ -324,19 +340,8 @@ void Tim1Callback100Hz(void)
 
     /* LED 状态更新 */
     LED_Tick(10, Motor_GetState());
-
-    /* 上位机数据发送 */
-    static uint8_t tele_cnt = 0;
-    if (++tele_cnt >= 10)
-    {
-        tele_cnt = 0;
-        float pos = Motor_GetPosition(false);
-        float vel = Motor_GetVelocity();
-        float cur = Motor_GetCurrent();
-        uint8_t mode = Motor_GetMode();
-        uint8_t state = Motor_GetState();
-//        printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state);//这个函数太耗时，转不快
-    }
+    
+    tele_cnt++;
 }
 
 /* 20kHz 定时器回调 */
