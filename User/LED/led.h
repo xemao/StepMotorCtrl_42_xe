@@ -1,9 +1,9 @@
 #ifndef LED_H
 #define LED_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "motor.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /* LED初始化 */
 void LED_Init(void);
@@ -12,4 +12,3 @@ void LED_Init(void);
 void LED_Tick(uint32_t time_elapse_millis, Motor_State_t state);
 
 #endif /* LED_H */
-

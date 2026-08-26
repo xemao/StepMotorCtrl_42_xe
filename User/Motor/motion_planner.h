@@ -1,15 +1,16 @@
 #ifndef MOTION_PLANNER_H
 #define MOTION_PLANNER_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* 控制频率 */
-#define CONTROL_FREQUENCY  20000   /* Hz */
-#define CONTROL_PERIOD_US  50      /* 微秒 */
+#define CONTROL_FREQUENCY 20000 /* Hz */
+#define CONTROL_PERIOD_US 50    /* 微秒 */
 
 /* ==================== 配置 ==================== */
-typedef struct {
+typedef struct
+{
     int32_t encoderHomeOffset;
     int32_t caliCurrent;
     int32_t ratedCurrent;
@@ -19,7 +20,7 @@ typedef struct {
 } MotionPlanner_Config_t;
 
 /* 全局配置指针（需要在c文件中赋值）*/
-extern MotionPlanner_Config_t* g_motion_config;
+extern MotionPlanner_Config_t *g_motion_config;
 
 /* ==================== CurrentTracker ==================== */
 extern int32_t g_go_current;
@@ -64,4 +65,3 @@ void TrajectoryTracker_NewTask(int32_t realLocation, int32_t realSpeed);
 void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity);
 
 #endif
-

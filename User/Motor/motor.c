@@ -1,16 +1,16 @@
 #include "motor.h"
-#include <math.h>
-#include <stdlib.h>
+#include "configurations.h"
+#include "eeprom.h"
+#include "encoder_calibrator.h"
 #include "mt6816.h"
 #include "tb67h450.h"
-#include "encoder_calibrator.h"
-#include <stdio.h>
 #include "usart.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "eeprom.h"
-#include "configurations.h"
 /* ==================== 电机状态变量 ==================== */
-static Motor_Config_t* s_config = NULL;
+static Motor_Config_t *s_config = NULL;
 static Motor_Mode_t s_request_mode = MODE_STOP;
 static Motor_Mode_t s_mode_running = MODE_STOP;
 static Motor_State_t s_state = STATE_STOP;
@@ -65,21 +65,31 @@ static int32_t CompensateAdvancedAngle(int32_t vel)
 
     if (vel < 0)
     {
-        if (vel > -100000) compensate = 0;
-        else if (vel > -1300000) compensate = (((vel + 100000) * 262) >> 20) - 0;
-        else if (vel > -2200000) compensate = (((vel + 1300000) * 105) >> 20) - 300;
-        else compensate = (((vel + 2200000) * 52) >> 20) - 390;
+        if (vel > -100000)
+            compensate = 0;
+        else if (vel > -1300000)
+            compensate = (((vel + 100000) * 262) >> 20) - 0;
+        else if (vel > -2200000)
+            compensate = (((vel + 1300000) * 105) >> 20) - 300;
+        else
+            compensate = (((vel + 2200000) * 52) >> 20) - 390;
 
-        if (compensate < -430) compensate = -430;
+        if (compensate < -430)
+            compensate = -430;
     }
     else
     {
-        if (vel < 100000) compensate = 0;
-        else if (vel < 1300000) compensate = (((vel - 100000) * 262) >> 20) + 0;
-        else if (vel < 2200000) compensate = (((vel - 1300000) * 105) >> 20) + 300;
-        else compensate = (((vel - 2200000) * 52) >> 20) + 390;
+        if (vel < 100000)
+            compensate = 0;
+        else if (vel < 1300000)
+            compensate = (((vel - 100000) * 262) >> 20) + 0;
+        else if (vel < 2200000)
+            compensate = (((vel - 1300000) * 105) >> 20) + 300;
+        else
+            compensate = (((vel - 2200000) * 52) >> 20) + 390;
 
-        if (compensate > 430) compensate = 430;
+        if (compensate > 430)
+            compensate = 430;
     }
 
     return compensate;
@@ -91,11 +101,11 @@ static void CalcCurrentToOutput(int32_t current)
 
     if (s_foc_current > 0)
     {
-        s_foc_position = s_est_position + SOFT_DIVIDE_NUM;  /* 超前90° */
+        s_foc_position = s_est_position + SOFT_DIVIDE_NUM; /* 超前90° */
     }
     else if (s_foc_current < 0)
     {
-        s_foc_position = s_est_position - SOFT_DIVIDE_NUM;  /* 滞后90° */
+        s_foc_position = s_est_position - SOFT_DIVIDE_NUM; /* 滞后90° */
     }
     else
     {
@@ -132,13 +142,13 @@ static void CalcPidToOutput(int32_t speed)
         s_config->ctrlParams.pid.outputKi = -(s_config->motionParams.ratedCurrent << 10);
 
     /* 微分项 */
-    s_config->ctrlParams.pid.outputKd = s_config->ctrlParams.pid.kd *
-                                        (s_config->ctrlParams.pid.vError - s_config->ctrlParams.pid.vErrorLast);
+    s_config->ctrlParams.pid.outputKd =
+        s_config->ctrlParams.pid.kd * (s_config->ctrlParams.pid.vError - s_config->ctrlParams.pid.vErrorLast);
 
     /* 总输出 */
-    s_config->ctrlParams.pid.output = (s_config->ctrlParams.pid.outputKp +
-                                       s_config->ctrlParams.pid.outputKi +
-                                       s_config->ctrlParams.pid.outputKd) >> 10;
+    s_config->ctrlParams.pid.output =
+        (s_config->ctrlParams.pid.outputKp + s_config->ctrlParams.pid.outputKi + s_config->ctrlParams.pid.outputKd) >>
+        10;
 
     /* 输出限幅 */
     if (s_config->ctrlParams.pid.output > s_config->motionParams.ratedCurrent)
@@ -148,10 +158,10 @@ static void CalcPidToOutput(int32_t speed)
 
     CalcCurrentToOutput(s_config->ctrlParams.pid.output);
 
-//      printf("target=%ld, est=%ld, err=%ld, out=%ld\r\n",
-//       speed, s_est_velocity,
-//       s_config->ctrlParams.pid.vError,
-//       s_config->ctrlParams.pid.output);
+    //      printf("target=%ld, est=%ld, err=%ld, out=%ld\r\n",
+    //       speed, s_est_velocity,
+    //       s_config->ctrlParams.pid.vError,
+    //       s_config->ctrlParams.pid.output);
 }
 
 static void CalcDceToOutput(int32_t location, int32_t speed)
@@ -161,10 +171,14 @@ static void CalcDceToOutput(int32_t location, int32_t speed)
     s_config->ctrlParams.dce.vError = (speed - s_est_velocity) >> 7;
 
     /* 限幅 */
-    if (s_config->ctrlParams.dce.pError > 3200) s_config->ctrlParams.dce.pError = 3200;
-    if (s_config->ctrlParams.dce.pError < -3200) s_config->ctrlParams.dce.pError = -3200;
-    if (s_config->ctrlParams.dce.vError > 4000) s_config->ctrlParams.dce.vError = 4000;
-    if (s_config->ctrlParams.dce.vError < -4000) s_config->ctrlParams.dce.vError = -4000;
+    if (s_config->ctrlParams.dce.pError > 3200)
+        s_config->ctrlParams.dce.pError = 3200;
+    if (s_config->ctrlParams.dce.pError < -3200)
+        s_config->ctrlParams.dce.pError = -3200;
+    if (s_config->ctrlParams.dce.vError > 4000)
+        s_config->ctrlParams.dce.vError = 4000;
+    if (s_config->ctrlParams.dce.vError < -4000)
+        s_config->ctrlParams.dce.vError = -4000;
 
     /* 比例项 */
     s_config->ctrlParams.dce.outputKp = s_config->ctrlParams.dce.kp * s_config->ctrlParams.dce.pError;
@@ -186,9 +200,9 @@ static void CalcDceToOutput(int32_t location, int32_t speed)
     s_config->ctrlParams.dce.outputKd = s_config->ctrlParams.dce.kd * s_config->ctrlParams.dce.vError;
 
     /* 总输出 */
-    s_config->ctrlParams.dce.output = (s_config->ctrlParams.dce.outputKp +
-                                       s_config->ctrlParams.dce.outputKi +
-                                       s_config->ctrlParams.dce.outputKd) >> 10;
+    s_config->ctrlParams.dce.output =
+        (s_config->ctrlParams.dce.outputKp + s_config->ctrlParams.dce.outputKi + s_config->ctrlParams.dce.outputKd) >>
+        10;
 
     /* 输出限幅 */
     if (s_config->ctrlParams.dce.output > s_config->motionParams.ratedCurrent)
@@ -231,10 +245,7 @@ void Motor_Init(void)
     }
 }
 
-void Motor_SetConfig(Motor_Config_t* config)
-{
-    s_config = config;
-}
+void Motor_SetConfig(Motor_Config_t *config) { s_config = config; }
 
 void Motor_Tick20kHz(void)
 {
@@ -243,20 +254,21 @@ void Motor_Tick20kHz(void)
     uint16_t rectified_angle = 0;
     rectified_angle = MT6816_GetRectifiedAngle();
 
-
     /* 首次调用：初始化位置 */
     if (s_first_called)
     {
         int32_t angle;
         if (s_config->motionParams.encoderHomeOffset < MOTOR_SUBDIVIDE_STEPS / 2)
         {
-            angle = (rectified_angle > s_config->motionParams.encoderHomeOffset + MOTOR_SUBDIVIDE_STEPS / 2) ?
-                    rectified_angle - MOTOR_SUBDIVIDE_STEPS : rectified_angle;
+            angle = (rectified_angle > s_config->motionParams.encoderHomeOffset + MOTOR_SUBDIVIDE_STEPS / 2)
+                        ? rectified_angle - MOTOR_SUBDIVIDE_STEPS
+                        : rectified_angle;
         }
         else
         {
-            angle = (rectified_angle < s_config->motionParams.encoderHomeOffset - MOTOR_SUBDIVIDE_STEPS / 2) ?
-                    rectified_angle + MOTOR_SUBDIVIDE_STEPS : rectified_angle;
+            angle = (rectified_angle < s_config->motionParams.encoderHomeOffset - MOTOR_SUBDIVIDE_STEPS / 2)
+                        ? rectified_angle + MOTOR_SUBDIVIDE_STEPS
+                        : rectified_angle;
         }
 
         s_real_lap_position = angle;
@@ -281,8 +293,8 @@ void Motor_Tick20kHz(void)
     s_real_position += delta;
 
     /* 估计速度 */
-    s_est_velocity_integral += ((s_real_position - s_real_position_last) * CONTROL_FREQUENCY +
-                                ((s_est_velocity << 5) - s_est_velocity));
+    s_est_velocity_integral +=
+        ((s_real_position - s_real_position_last) * CONTROL_FREQUENCY + ((s_est_velocity << 5) - s_est_velocity));
     s_est_velocity = s_est_velocity_integral >> 5;
     s_est_velocity_integral -= (s_est_velocity << 5);
 
@@ -291,14 +303,14 @@ void Motor_Tick20kHz(void)
     s_est_position = s_real_position + s_est_lead_position;
 
     /* 控制循环 */
-    if (s_is_stalled || s_soft_disable || !EncoderCalibrator_IsCalibrated())  /* 休眠 */
+    if (s_is_stalled || s_soft_disable || !EncoderCalibrator_IsCalibrated()) /* 休眠 */
     {
         ClearIntegral();
         s_foc_position = 0;
         s_foc_current = 0;
         TB67H450_Sleep();
     }
-    else if (s_soft_brake)     /* 刹车 */
+    else if (s_soft_brake) /* 刹车 */
     {
         ClearIntegral();
         s_foc_position = 0;
@@ -309,24 +321,24 @@ void Motor_Tick20kHz(void)
     {
         switch (s_mode_running)
         {
-            case MODE_STOP:
-                TB67H450_Sleep();
-                break;
-            case MODE_COMMAND_POSITION:
-            case MODE_COMMAND_TRAJECTORY:
-            case MODE_PWM_POSITION:
-                CalcDceToOutput(s_soft_position, s_soft_velocity);
-                break;
-            case MODE_COMMAND_VELOCITY:
-            case MODE_PWM_VELOCITY:
-                CalcPidToOutput(s_soft_velocity);
-                break;
-            case MODE_COMMAND_CURRENT:
-            case MODE_PWM_CURRENT:
-                CalcCurrentToOutput(s_soft_current);
-                break;
-            default:
-                break;
+        case MODE_STOP:
+            TB67H450_Sleep();
+            break;
+        case MODE_COMMAND_POSITION:
+        case MODE_COMMAND_TRAJECTORY:
+        case MODE_PWM_POSITION:
+            CalcDceToOutput(s_soft_position, s_soft_velocity);
+            break;
+        case MODE_COMMAND_VELOCITY:
+        case MODE_PWM_VELOCITY:
+            CalcPidToOutput(s_soft_velocity);
+            break;
+        case MODE_COMMAND_CURRENT:
+        case MODE_PWM_CURRENT:
+            CalcCurrentToOutput(s_soft_current);
+            break;
+        default:
+            break;
         }
     }
 
@@ -361,52 +373,52 @@ void Motor_Tick20kHz(void)
 
         switch (s_mode_running)
         {
-            case MODE_COMMAND_POSITION:
-            case MODE_PWM_POSITION:
-                PositionTracker_NewTask(s_est_position, s_est_velocity);
-                break;
-            case MODE_COMMAND_VELOCITY:
-            case MODE_PWM_VELOCITY:
-                VelocityTracker_NewTask(s_est_velocity);
-                break;
-            case MODE_COMMAND_CURRENT:
-            case MODE_PWM_CURRENT:
-                CurrentTracker_NewTask(s_foc_current);
-                break;
-            case MODE_COMMAND_TRAJECTORY:
-                TrajectoryTracker_NewTask(s_est_position, s_est_velocity);
-                break;
-            default:
-                break;
+        case MODE_COMMAND_POSITION:
+        case MODE_PWM_POSITION:
+            PositionTracker_NewTask(s_est_position, s_est_velocity);
+            break;
+        case MODE_COMMAND_VELOCITY:
+        case MODE_PWM_VELOCITY:
+            VelocityTracker_NewTask(s_est_velocity);
+            break;
+        case MODE_COMMAND_CURRENT:
+        case MODE_PWM_CURRENT:
+            CurrentTracker_NewTask(s_foc_current);
+            break;
+        case MODE_COMMAND_TRAJECTORY:
+            TrajectoryTracker_NewTask(s_est_position, s_est_velocity);
+            break;
+        default:
+            break;
         }
     }
 
     /* 计算软目标 */
     switch (s_mode_running)
     {
-        case MODE_COMMAND_POSITION:
-        case MODE_PWM_POSITION:
-            PositionTracker_CalcSoftGoal(s_goal_position);
-            s_soft_position = g_go_location;
-            s_soft_velocity = g_go_location_velocity;
-            break;
-        case MODE_COMMAND_VELOCITY:
-        case MODE_PWM_VELOCITY:
-            VelocityTracker_CalcSoftGoal(s_goal_velocity);
-            s_soft_velocity = g_go_velocity;
-            break;
-        case MODE_COMMAND_CURRENT:
-        case MODE_PWM_CURRENT:
-            CurrentTracker_CalcSoftGoal(s_goal_current);
-            s_soft_current = g_go_current;
-            break;
-        case MODE_COMMAND_TRAJECTORY:
-            TrajectoryTracker_CalcSoftGoal(s_goal_position, s_goal_velocity);
-            s_soft_position = g_traj_go_position;
-            s_soft_velocity = g_traj_go_velocity;
-            break;
-        default:
-            break;
+    case MODE_COMMAND_POSITION:
+    case MODE_PWM_POSITION:
+        PositionTracker_CalcSoftGoal(s_goal_position);
+        s_soft_position = g_go_location;
+        s_soft_velocity = g_go_location_velocity;
+        break;
+    case MODE_COMMAND_VELOCITY:
+    case MODE_PWM_VELOCITY:
+        VelocityTracker_CalcSoftGoal(s_goal_velocity);
+        s_soft_velocity = g_go_velocity;
+        break;
+    case MODE_COMMAND_CURRENT:
+    case MODE_PWM_CURRENT:
+        CurrentTracker_CalcSoftGoal(s_goal_current);
+        s_soft_current = g_go_current;
+        break;
+    case MODE_COMMAND_TRAJECTORY:
+        TrajectoryTracker_CalcSoftGoal(s_goal_position, s_goal_velocity);
+        s_soft_position = g_traj_go_position;
+        s_soft_velocity = g_traj_go_velocity;
+        break;
+    default:
+        break;
     }
 
     s_soft_disable = s_goal_disable;
@@ -506,20 +518,13 @@ void Motor_Tick20kHz(void)
 }
 
 /* ==================== 控制接口 ==================== */
-void Motor_SetMode(Motor_Mode_t mode)
-{
-    s_request_mode = mode;
-}
+void Motor_SetMode(Motor_Mode_t mode) { s_request_mode = mode; }
 
-void Motor_SetPosition(int32_t pos)
-{
-    s_goal_position = pos + s_config->motionParams.encoderHomeOffset;
-}
+void Motor_SetPosition(int32_t pos) { s_goal_position = pos + s_config->motionParams.encoderHomeOffset; }
 
 void Motor_SetVelocity(int32_t vel)
 {
-    if (vel >= -s_config->motionParams.ratedVelocity &&
-        vel <= s_config->motionParams.ratedVelocity)
+    if (vel >= -s_config->motionParams.ratedVelocity && vel <= s_config->motionParams.ratedVelocity)
     {
         s_goal_velocity = vel;
     }
@@ -535,15 +540,9 @@ void Motor_SetCurrent(int32_t cur)
         s_goal_current = cur;
 }
 
-void Motor_SetDisable(bool disable)
-{
-    s_goal_disable = disable;
-}
+void Motor_SetDisable(bool disable) { s_goal_disable = disable; }
 
-void Motor_SetBrake(bool brake)
-{
-    s_goal_brake = brake;
-}
+void Motor_SetBrake(bool brake) { s_goal_brake = brake; }
 
 void Motor_ClearStallFlag(void)
 {
@@ -552,34 +551,23 @@ void Motor_ClearStallFlag(void)
 }
 
 /* ==================== 状态读取 ==================== */
-Motor_State_t Motor_GetState(void)
-{
-    return s_state;
-}
+Motor_State_t Motor_GetState(void) { return s_state; }
 
 float Motor_GetPosition(bool isLap)
 {
     if (isLap)
     {
-        return (float)(s_real_lap_position - s_config->motionParams.encoderHomeOffset) /
-               (float)MOTOR_SUBDIVIDE_STEPS;
+        return (float)(s_real_lap_position - s_config->motionParams.encoderHomeOffset) / (float)MOTOR_SUBDIVIDE_STEPS;
     }
     else
     {
-        return (float)(s_real_position - s_config->motionParams.encoderHomeOffset) /
-               (float)MOTOR_SUBDIVIDE_STEPS;
+        return (float)(s_real_position - s_config->motionParams.encoderHomeOffset) / (float)MOTOR_SUBDIVIDE_STEPS;
     }
 }
 
-float Motor_GetVelocity(void)
-{
-    return (float)s_est_velocity / (float)MOTOR_SUBDIVIDE_STEPS;
-}
+float Motor_GetVelocity(void) { return (float)s_est_velocity / (float)MOTOR_SUBDIVIDE_STEPS; }
 
-float Motor_GetCurrent(void)
-{
-    return (float)s_foc_current / 1000.0f;
-}
+float Motor_GetCurrent(void) { return (float)s_foc_current / 1000.0f; }
 
 bool Motor_IsCalibrated(void)
 {
@@ -593,10 +581,7 @@ void Motor_TriggerCalibration(void)
     EncoderCalibrator_Trigger();
 }
 
-uint8_t Motor_GetMode(void)
-{
-    return s_mode_running;
-}
+uint8_t Motor_GetMode(void) { return s_mode_running; }
 
 void Motor_GetTelemetry(float *pos, float *vel, float *cur, uint8_t *mode, uint8_t *state)
 {
@@ -616,4 +601,3 @@ void Motor_ZeroPosition(void)
     boardConfig.encoderHomeOffset = s_config->motionParams.encoderHomeOffset;
     EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
 }
-

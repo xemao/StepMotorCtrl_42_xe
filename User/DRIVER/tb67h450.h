@@ -1,8 +1,8 @@
 #ifndef TB67H450_H
 #define TB67H450_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* FOC电流矢量控制 */
 /* _directionInCount: 电角度 (0-1023)

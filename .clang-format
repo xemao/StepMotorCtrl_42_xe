@@ -1,0 +1,41 @@
+# 基于 LLVM 风格(2 空格缩进、指针 * 靠变量名)
+# 再按 STM32 HAL 库代码风格调整:花括号统一换行(Allman)、不对齐连续声明/赋值
+BasedOnStyle: LLVM
+Language:        Cpp
+Standard:        Auto
+ColumnLimit:     120
+
+# tab 键的宽度
+TabWidth: 4
+UseTab: Never
+IndentWidth: 4
+
+# 花括号包裹方式:与 HAL 库一致,左花括号单独占一行(Allman)
+BreakBeforeBraces: Allman
+
+# 连续赋值时不强制对齐等号(HAL 库不对齐)
+AlignConsecutiveAssignments: false
+
+# 连续声明时不对齐变量名(HAL 库不对齐)
+AlignConsecutiveDeclarations: false
+
+# 对齐连续的尾随注释(HAL 库对齐,如 registeroffset; /* ... */)
+AlignTrailingComments: true
+
+# 对齐连续的宏定义(HAL 库对齐 #define 的值)
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+
+AlignEscapedNewlines : Left
+
+AlignOperands : Align
+
+# 允许排序 #include, 会造成编译错误
+# SortIncludes: true
+
+# 不额外缩进 case 标签(HAL 库 case 相对 switch 缩进一层)
+IndentCaseLabels: false
+# 缩进
+IndentWrappedFunctionNames: true

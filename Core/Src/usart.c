@@ -1,21 +1,21 @@
 /**
-  ******************************************************************************
-  * @file    usart.c
-  * @brief   This file provides code for the configuration
-  *          of the USART instances.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    usart.c
+ * @brief   This file provides code for the configuration
+ *          of the USART instances.
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
@@ -23,15 +23,15 @@
 /* USER CODE BEGIN 0 */
 #include "uart_cmd.h"
 #include "usart.h"
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 /* 接收缓冲区 */
 volatile uint8_t rxLen = 0;
 uint8_t rx_buffer[BUFFER_SIZE] = {0};
 
 /* 回调函数指针 */
-void (*OnRecvEnd)(uint8_t* data, uint16_t len) = NULL;
+void (*OnRecvEnd)(uint8_t *data, uint16_t len) = NULL;
 
 /* 发送完成标志 */
 volatile bool tx_complete = true;
@@ -65,11 +65,11 @@ void MX_USART1_UART_Init(void)
     HAL_UART_Receive_DMA(&huart1, rx_buffer, BUFFER_SIZE);
 }
 
-void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
+void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
 {
 
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    if(uartHandle->Instance == USART1)
+    if (uartHandle->Instance == USART1)
     {
         /* USER CODE BEGIN USART1_MspInit 0 */
 
@@ -136,10 +136,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     }
 }
 
-void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
+void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle)
 {
 
-    if(uartHandle->Instance == USART1)
+    if (uartHandle->Instance == USART1)
     {
         /* USER CODE BEGIN USART1_MspDeInit 0 */
 
@@ -167,30 +167,25 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 /* 设置接收回调 */
-void Uart_SetRxCallback(void (*callback)(uint8_t* data, uint16_t len))
-{
-    OnRecvEnd  = callback;
-}
+void Uart_SetRxCallback(void (*callback)(uint8_t *data, uint16_t len)) { OnRecvEnd = callback; }
 
 /* 发送数据 */
-void Uart_Send(uint8_t* data, uint16_t len)
+void Uart_Send(uint8_t *data, uint16_t len)
 {
     /* 等待上一次发送完成 */
-    while (!tx_complete);
+    while (!tx_complete)
+        ;
 
     tx_complete = false;
     HAL_UART_Transmit_DMA(&huart1, data, len);
 }
 
 /* 发送字符串 */
-void Uart_SendString(char* str)
-{
-    Uart_Send((uint8_t*)str, strlen(str));
-}
+void Uart_SendString(char *str) { Uart_Send((uint8_t *)str, strlen(str)); }
 
 int fputc(int ch, FILE *f)
 {
-    HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
     return ch;
 }
 /* USER CODE END 1 */

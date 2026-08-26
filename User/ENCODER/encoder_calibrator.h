@@ -1,8 +1,8 @@
 #ifndef ENCODER_CALIBRATOR_H
 #define ENCODER_CALIBRATOR_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* 初始化校准器 */
 void EncoderCalibrator_Init(void);

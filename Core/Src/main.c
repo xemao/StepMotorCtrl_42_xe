@@ -1,44 +1,44 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
+#include "gpio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "led.h"
 #include "button.h"
-#include "motor.h"
-#include "tb67h450.h"
-#include "mt6816.h"
-#include "encoder_calibrator.h"
-#include "stockpile_f103cb.h"
 #include "configurations.h"
-#include "uart_cmd.h"
 #include "eeprom.h"
+#include "encoder_calibrator.h"
+#include "led.h"
+#include "motor.h"
+#include "mt6816.h"
+#include "stockpile_f103cb.h"
+#include "tb67h450.h"
+#include "uart_cmd.h"
 #include <stdio.h>
 #include <string.h>
 /* USER CODE END Includes */
@@ -83,9 +83,9 @@ void Tim4Callback20kHz(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
     /* USER CODE BEGIN 1 */
@@ -176,11 +176,10 @@ int main(void)
     Motor_SetConfig(&motor_config);
     Motor_Init();
 
-
     /* 8. 启动定时器 */
     HAL_Delay(100);
-    HAL_TIM_Base_Start_IT(&htim1);  // 100Hz
-    HAL_TIM_Base_Start_IT(&htim4);  // 20kHz
+    HAL_TIM_Base_Start_IT(&htim1); // 100Hz
+    HAL_TIM_Base_Start_IT(&htim4); // 20kHz
 
     /* 9. 检查是否触发校准（两个按钮同时按下）*/
     if (Button_IsPressed(1) && Button_IsPressed(2))
@@ -216,10 +215,8 @@ int main(void)
             EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
             HAL_NVIC_SystemReset();
         }
-        
-        
 
-    /* 上位机数据发送 */
+        /* 上位机数据发送 */
         if (tele_cnt >= 10)
         {
             tele_cnt = 0;
@@ -228,7 +225,7 @@ int main(void)
             float cur = Motor_GetCurrent();
             uint8_t mode = Motor_GetMode();
             uint8_t state = Motor_GetState();
-            printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state);//这个函数太耗时，转不快
+            printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state); // 这个函数太耗时，转不快
         }
         /* USER CODE BEGIN 3 */
     }
@@ -236,9 +233,9 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -246,8 +243,8 @@ void SystemClock_Config(void)
     RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
     /** Initializes the RCC Oscillators according to the specified parameters
-    * in the RCC_OscInitTypeDef structure.
-    */
+     * in the RCC_OscInitTypeDef structure.
+     */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -260,9 +257,8 @@ void SystemClock_Config(void)
         Error_Handler();
     }
     /** Initializes the CPU, AHB and APB buses clocks
-    */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                                  | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -340,7 +336,7 @@ void Tim1Callback100Hz(void)
 
     /* LED 状态更新 */
     LED_Tick(10, Motor_GetState());
-    
+
     tele_cnt++;
 }
 
@@ -353,19 +349,19 @@ void Tim4Callback20kHz(void)
     /* 校准模式 vs 正常运行模式 */
     if (EncoderCalibrator_IsTriggered())
     {
-        EncoderCalibrator_Tick20kHz();   // 校准状态机
+        EncoderCalibrator_Tick20kHz(); // 校准状态机
     }
     else
     {
-        Motor_Tick20kHz();                // 电机控制
+        Motor_Tick20kHz(); // 电机控制
     }
 }
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
     /* USER CODE BEGIN Error_Handler_Debug */
@@ -377,14 +373,14 @@ void Error_Handler(void)
     /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
     /* USER CODE BEGIN 6 */

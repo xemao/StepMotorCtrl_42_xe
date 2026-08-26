@@ -1,10 +1,10 @@
 #include "motion_planner.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include "usart.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* 配置指针 */
-MotionPlanner_Config_t* g_motion_config = NULL;
+MotionPlanner_Config_t *g_motion_config = NULL;
 
 /* ==================== CurrentTracker 全局变量 ==================== */
 static int32_t s_current_acc = 0;
@@ -98,22 +98,16 @@ static void CalcTrajPositionIntegral(int32_t value)
 }
 
 /* ==================== CurrentTracker 实现 ==================== */
-void CurrentTracker_Init(void)
-{
-    CurrentTracker_SetCurrentAcc(g_motion_config->ratedCurrentAcc);
-}
+void CurrentTracker_Init(void) { CurrentTracker_SetCurrentAcc(g_motion_config->ratedCurrentAcc); }
 
-void CurrentTracker_SetCurrentAcc(int32_t currentAcc)
-{
-    s_current_acc = currentAcc;
-}
+void CurrentTracker_SetCurrentAcc(int32_t currentAcc) { s_current_acc = currentAcc; }
 
 void CurrentTracker_NewTask(int32_t realCurrent)
 {
     s_current_integral = 0;
     s_track_current = realCurrent;
 }
-//电流梯形平滑规划控制
+// 电流梯形平滑规划控制
 void CurrentTracker_CalcSoftGoal(int32_t goalCurrent)
 {
     int32_t delta = goalCurrent - s_track_current;
@@ -169,15 +163,9 @@ void CurrentTracker_CalcSoftGoal(int32_t goalCurrent)
 }
 
 /* ==================== VelocityTracker 实现 ==================== */
-void VelocityTracker_Init(void)
-{
-    VelocityTracker_SetVelocityAcc(g_motion_config->ratedVelocityAcc);
-}
+void VelocityTracker_Init(void) { VelocityTracker_SetVelocityAcc(g_motion_config->ratedVelocityAcc); }
 
-void VelocityTracker_SetVelocityAcc(int32_t velocityAcc)
-{
-    s_velocity_acc = velocityAcc;
-}
+void VelocityTracker_SetVelocityAcc(int32_t velocityAcc) { s_velocity_acc = velocityAcc; }
 
 void VelocityTracker_NewTask(int32_t realVelocity)
 {
@@ -185,7 +173,7 @@ void VelocityTracker_NewTask(int32_t realVelocity)
     s_track_velocity = realVelocity;
 }
 
-//速度梯形平滑规划控制
+// 速度梯形平滑规划控制
 void VelocityTracker_CalcSoftGoal(int32_t goalVelocity)
 {
     int32_t delta = goalVelocity - s_track_velocity;
@@ -261,17 +249,16 @@ void PositionTracker_NewTask(int32_t realLocation, int32_t realSpeed)
     s_position_integral = 0;
     s_track_position = realLocation;
 }
-//位置S形平滑规划控制
+// 位置S形平滑规划控制
 void PositionTracker_CalcSoftGoal(int32_t goalPosition)
 {
-    int32_t delta = goalPosition - s_track_position;  // 剩余距离
+    int32_t delta = goalPosition - s_track_position; // 剩余距离
 
     /* ==================== 情况1：已到达目标位置 ==================== */
     if (delta == 0)
     {
         // 速度很小时（在刹车阈值内），直接锁定停止
-        if ((s_track_velocity_pos >= -s_speed_locking_brake) &&
-            (s_track_velocity_pos <= s_speed_locking_brake))
+        if ((s_track_velocity_pos >= -s_speed_locking_brake) && (s_track_velocity_pos <= s_speed_locking_brake))
         {
             s_velocity_integral_pos = 0;
             s_track_velocity_pos = 0;
@@ -280,8 +267,8 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
         // 速度为正，需要减速到0
         else if (s_track_velocity_pos > 0)
         {
-            CalcPositionVelocityIntegral(-s_velocity_down_acc);  // 减速
-            if (s_track_velocity_pos <= 0)    // 已经减到0或以下
+            CalcPositionVelocityIntegral(-s_velocity_down_acc); // 减速
+            if (s_track_velocity_pos <= 0)                      // 已经减到0或以下
             {
                 s_velocity_integral_pos = 0;
                 s_track_velocity_pos = 0;
@@ -290,7 +277,7 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
         // 速度为负，需要减速到0
         else if (s_track_velocity_pos < 0)
         {
-            CalcPositionVelocityIntegral(s_velocity_down_acc);   // 减速（反向）
+            CalcPositionVelocityIntegral(s_velocity_down_acc); // 减速（反向）
             if (s_track_velocity_pos >= 0)
             {
                 s_velocity_integral_pos = 0;
@@ -307,11 +294,11 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
         {
             if (delta > 0)
             {
-                CalcPositionVelocityIntegral(s_velocity_up_acc);   // 正向加速
+                CalcPositionVelocityIntegral(s_velocity_up_acc); // 正向加速
             }
             else
             {
-                CalcPositionVelocityIntegral(-s_velocity_up_acc);  // 反向加速
+                CalcPositionVelocityIntegral(-s_velocity_up_acc); // 反向加速
             }
         }
 
@@ -323,9 +310,8 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             {
                 // 核心公式：计算从当前速度减到0需要的距离
                 // need_down = v2 / (2a)
-                int32_t need_down = (int32_t)((float)s_track_velocity_pos *
-                                              (float)s_track_velocity_pos *
-                                              s_quick_velocity_down_acc);
+                int32_t need_down =
+                    (int32_t)((float)s_track_velocity_pos * (float)s_track_velocity_pos * s_quick_velocity_down_acc);
 
                 // 判断：剩余距离是否足够减速？
                 if (abs(delta) > need_down)
@@ -333,7 +319,7 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
                     // 距离足够，可以继续加速或保持匀速
                     if (s_track_velocity_pos < g_motion_config->ratedVelocity)
                     {
-                        CalcPositionVelocityIntegral(s_velocity_up_acc);  // 继续加速
+                        CalcPositionVelocityIntegral(s_velocity_up_acc); // 继续加速
                         // 限幅：不超过最大速度
                         if (s_track_velocity_pos >= g_motion_config->ratedVelocity)
                         {
@@ -375,9 +361,8 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             // 逻辑与正向对称，方向相反
             if (s_track_velocity_pos >= -g_motion_config->ratedVelocity)
             {
-                int32_t need_down = (int32_t)((float)s_track_velocity_pos *
-                                              (float)s_track_velocity_pos *
-                                              s_quick_velocity_down_acc);
+                int32_t need_down =
+                    (int32_t)((float)s_track_velocity_pos * (float)s_track_velocity_pos * s_quick_velocity_down_acc);
                 if (abs(delta) > need_down)
                 {
                     if (s_track_velocity_pos > -g_motion_config->ratedVelocity)
@@ -449,10 +434,7 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
 }
 
 /* ==================== PositionInterpolator 实现 ==================== */
-void PositionInterpolator_Init(void)
-{
-    /* Nothing to init */
-}
+void PositionInterpolator_Init(void) { /* Nothing to init */ }
 
 void PositionInterpolator_NewTask(int32_t realPosition, int32_t realVelocity)
 {
@@ -461,14 +443,14 @@ void PositionInterpolator_NewTask(int32_t realPosition, int32_t realVelocity)
     s_est_position = realPosition;
     s_est_velocity_interp = realVelocity;
 }
-//Step/Dir模式
+// Step/Dir模式
 void PositionInterpolator_CalcSoftGoal(int32_t goalPosition)
 {
     s_record_position_last = s_record_position;
     s_record_position = goalPosition;
 
-    s_est_position_integral += ((s_record_position - s_record_position_last) * CONTROL_FREQUENCY)
-                               + ((s_est_velocity_interp << 6) - s_est_velocity_interp);
+    s_est_position_integral += ((s_record_position - s_record_position_last) * CONTROL_FREQUENCY) +
+                               ((s_est_velocity_interp << 6) - s_est_velocity_interp);
     s_est_velocity_interp = s_est_position_integral >> 6;
     s_est_position_integral -= (s_est_velocity_interp << 6);
 
@@ -485,10 +467,7 @@ void TrajectoryTracker_Init(int32_t updateTimeout)
     s_update_timeout = updateTimeout;
 }
 
-void TrajectoryTracker_SetSlowDownVelocityAcc(int32_t value)
-{
-    s_velocity_down_acc_traj = value;
-}
+void TrajectoryTracker_SetSlowDownVelocityAcc(int32_t value) { s_velocity_down_acc_traj = value; }
 
 void TrajectoryTracker_NewTask(int32_t realLocation, int32_t realSpeed)
 {
@@ -506,9 +485,9 @@ void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
     if (goalVelocity != s_record_velocity || goalPosition != s_record_position_traj)
     {
         // 目标有变化（收到了新的轨迹指令）
-        s_update_time = 0;                      // 重置超时计时器
-        s_record_velocity = goalVelocity;       // 记录新目标速度
-        s_record_position_traj = goalPosition;  // 记录新目标位置
+        s_update_time = 0;                     // 重置超时计时器
+        s_record_velocity = goalVelocity;      // 记录新目标速度
+        s_record_position_traj = goalPosition; // 记录新目标位置
 
         /**
          * 核心公式：计算需要的加速度
@@ -524,10 +503,10 @@ void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
          *   s_velocity_now = v1（当前速度）
          *   goalPosition - s_position_now = s（位移）
          */
-        s_dynamic_velocity_acc = (int32_t)((float)(goalVelocity + s_velocity_now) *
-                                           (float)(goalVelocity - s_velocity_now) /
-                                           (float)(2 * (goalPosition - s_position_now)));
-        s_overtime_flag = false;                // 清除超时标志
+        s_dynamic_velocity_acc =
+            (int32_t)((float)(goalVelocity + s_velocity_now) * (float)(goalVelocity - s_velocity_now) /
+                      (float)(2 * (goalPosition - s_position_now)));
+        s_overtime_flag = false; // 清除超时标志
     }
     /* ==================== 第2步：目标未变化，检查超时 ==================== */
     else
@@ -535,7 +514,7 @@ void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
         // 长时间没收到新指令，累积超时时间
         if (s_update_time >= (s_update_timeout * 1000))
         {
-            s_overtime_flag = true;             // 超时！触发安全停车
+            s_overtime_flag = true; // 超时！触发安全停车
         }
         else
         {
@@ -593,7 +572,6 @@ void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
     CalcTrajPositionIntegral(s_velocity_now);
 
     /* ==================== 第5步：输出结果 ==================== */
-    g_traj_go_position = s_position_now;   // 规划后的位置
-    g_traj_go_velocity = s_velocity_now;   // 规划后的速度
+    g_traj_go_position = s_position_now; // 规划后的位置
+    g_traj_go_velocity = s_velocity_now; // 规划后的速度
 }
-

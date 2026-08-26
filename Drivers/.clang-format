@@ -1,0 +1,2 @@
+# 库文件(ST HAL 驱动 / CMSIS)禁止自动格式化,保持官方原样
+DisableFormat: true

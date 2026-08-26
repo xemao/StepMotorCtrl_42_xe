@@ -1,17 +1,18 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "motion_planner.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /* 电机常量 */
-#define MOTOR_HARD_STEPS          200
-#define SOFT_DIVIDE_NUM           256
-#define MOTOR_SUBDIVIDE_STEPS     (MOTOR_HARD_STEPS * SOFT_DIVIDE_NUM)  /* 51200 */
+#define MOTOR_HARD_STEPS      200
+#define SOFT_DIVIDE_NUM       256
+#define MOTOR_SUBDIVIDE_STEPS (MOTOR_HARD_STEPS * SOFT_DIVIDE_NUM) /* 51200 */
 
 /* 电机模式 */
-typedef enum {
+typedef enum
+{
     MODE_STOP,
     MODE_COMMAND_POSITION,
     MODE_COMMAND_VELOCITY,
@@ -24,7 +25,8 @@ typedef enum {
 } Motor_Mode_t;
 
 /* 电机状态 */
-typedef enum {
+typedef enum
+{
     STATE_STOP,
     STATE_FINISH,
     STATE_RUNNING,
@@ -34,7 +36,8 @@ typedef enum {
 } Motor_State_t;
 
 /* PID 结构体 */
-typedef struct {
+typedef struct
+{
     int32_t kp, ki, kd;
     int32_t vError, vErrorLast;
     int32_t outputKp, outputKi, outputKd;
@@ -44,7 +47,8 @@ typedef struct {
 } PID_t;
 
 /* DCE 结构体 */
-typedef struct {
+typedef struct
+{
     int32_t kp, kv, ki, kd;
     int32_t pError, vError;
     int32_t outputKp, outputKi, outputKd;
@@ -54,14 +58,16 @@ typedef struct {
 } DCE_t;
 
 /* 控制器配置 */
-typedef struct {
+typedef struct
+{
     PID_t pid;
     DCE_t dce;
     bool stallProtectSwitch;
 } Controller_Config_t;
 
 /* 电机配置 */
-typedef struct {
+typedef struct
+{
     MotionPlanner_Config_t motionParams;
     Controller_Config_t ctrlParams;
 } Motor_Config_t;
@@ -70,7 +76,7 @@ typedef struct {
 void Motor_Init(void);
 
 /* 设置配置指针 */
-void Motor_SetConfig(Motor_Config_t* config);
+void Motor_SetConfig(Motor_Config_t *config);
 
 /* 20kHz 中断中调用 */
 void Motor_Tick20kHz(void);
@@ -101,4 +107,3 @@ void Motor_GetTelemetry(float *pos, float *vel, float *cur, uint8_t *mode, uint8
 void Motor_ZeroPosition(void);
 
 #endif
-
