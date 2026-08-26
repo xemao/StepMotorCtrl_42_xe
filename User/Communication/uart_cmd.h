@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/* 处理接收到的串口数据 */
+/* 澶勭悊鎺ユ敹鍒扮殑涓插彛鏁版嵁 */
 void UartCmd_Process(uint8_t* data, uint16_t len);
 
 #endif

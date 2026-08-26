@@ -40,16 +40,16 @@ extern UART_HandleTypeDef huart1;
 void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-/* »º³åÇø´óĞ¡ */
+/* ç¼“å†²åŒºå¤§å° */
 #define BUFFER_SIZE   256
 
-/* ÉèÖÃ½ÓÊÕÍê³É»Øµ÷ */
+/* è®¾ç½®æ¥æ”¶å®Œæˆå›è°ƒ */
 void Uart_SetRxCallback(void (*callback)(uint8_t* data, uint16_t len));
 
-/* ·¢ËÍÊı¾İ */
+/* å‘é€æ•°æ® */
 void Uart_Send(uint8_t* data, uint16_t len);
 
-/* ·¢ËÍ×Ö·û´® */
+/* å‘é€å­—ç¬¦ä¸² */
 void Uart_SendString(char* str);
 
 extern volatile uint8_t rxLen;

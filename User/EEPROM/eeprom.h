@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* ¶ÁÈ¡Êı¾İ£¨´ÓFlashµ½ÄÚ´æ£© */
+/* è¯»å–æ•°æ®ï¼ˆä»Flashåˆ°å†…å­˜ï¼‰ */
 void EEPROM_Read(uint32_t addr, void* data, uint32_t size);
 
-/* Ğ´ÈëÊı¾İ£¨ÄÚ´æµ½Flash£© */
+/* å†™å…¥æ•°æ®ï¼ˆå†…å­˜åˆ°Flashï¼‰ */
 void EEPROM_Write(uint32_t addr, void* data, uint32_t size);
 
-/* ¼ì²éEEPROMÊÇ·ñÓĞÓĞĞ§Êı¾İ */
+/* æ£€æŸ¥EEPROMæ˜¯å¦æœ‰æœ‰æ•ˆæ•°æ® */
 bool EEPROM_IsValid(void);
 
 #endif

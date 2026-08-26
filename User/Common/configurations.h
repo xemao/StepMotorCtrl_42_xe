@@ -8,14 +8,14 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-/* ==================== ÅäÖÃ×´Ì¬Ã¶¾Ù ==================== */
+/* ==================== é…ç½®çŠ¶æ€æšä¸¾ ==================== */
 typedef enum {
     CONFIG_RESTORE = 0,
     CONFIG_OK,
     CONFIG_COMMIT
 } configStatus_t;
 
-/* ==================== °å¿¨ÅäÖÃ½á¹¹Ìå ==================== */
+/* ==================== æ¿å¡é…ç½®ç»“æ„ä½“ ==================== */
 typedef struct {
     configStatus_t configStatus;
     uint32_t canNodeId;
@@ -36,7 +36,7 @@ typedef struct {
     bool enableStallProtect;
 } BoardConfig_t;
 
-/* ==================== È«¾Ö±äÁ¿ÉùÃ÷ ==================== */
+/* ==================== å…¨å±€å˜é‡å£°æ˜ ==================== */
 extern BoardConfig_t boardConfig;
 
 #ifdef __cplusplus

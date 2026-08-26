@@ -9,33 +9,33 @@
 #include <string.h>
 #include "eeprom.h"
 #include "configurations.h"
-/* ==================== µç»ú×´Ì¬±äÁ¿ ==================== */
+/* ==================== ç”µæœºçŠ¶æ€å˜é‡ ==================== */
 static Motor_Config_t* s_config = NULL;
 static Motor_Mode_t s_request_mode = MODE_STOP;
 static Motor_Mode_t s_mode_running = MODE_STOP;
 static Motor_State_t s_state = STATE_STOP;
 static bool s_is_stalled = false;
 
-/* Êµ¼ÊÖµ */
+/* å®é™…å€¼ */
 static int32_t s_real_lap_position = 0;
 static int32_t s_real_lap_position_last = 0;
 static int32_t s_real_position = 0;
 static int32_t s_real_position_last = 0;
 
-/* ¹À¼ÆÖµ */
+/* ä¼°è®¡å€¼ */
 static int32_t s_est_velocity = 0;
 static int32_t s_est_velocity_integral = 0;
 static int32_t s_est_lead_position = 0;
 static int32_t s_est_position = 0;
 
-/* Ä¿±êÖµ */
+/* ç›®æ ‡å€¼ */
 static int32_t s_goal_position = 0;
 static int32_t s_goal_velocity = 0;
 static int32_t s_goal_current = 0;
 static bool s_goal_disable = false;
 static bool s_goal_brake = false;
 
-/* ÈíÄ¿±êÖµ£¨Æ½»¬ºóµÄ£©*/
+/* è½¯ç›®æ ‡å€¼ï¼ˆå¹³æ»‘åçš„ï¼‰*/
 static int32_t s_soft_position = 0;
 static int32_t s_soft_velocity = 0;
 static int32_t s_soft_current = 0;
@@ -43,22 +43,22 @@ static bool s_soft_disable = false;
 static bool s_soft_brake = false;
 static bool s_soft_new_curve = false;
 
-/* FOC Êä³ö */
+/* FOC è¾“å‡º */
 static int32_t s_foc_position = 0;
 static int32_t s_foc_current = 0;
 
-/* ¹ÊÕÏ¼ì²â */
+/* æ•…éšœæ£€æµ‹ */
 static uint32_t s_stalled_time = 0;
 static uint32_t s_overload_time = 0;
 static bool s_overload_flag = false;
 
-/* Ê×´Îµ÷ÓÃ±êÖ¾ */
+/* é¦–æ¬¡è°ƒç”¨æ ‡å¿— */
 static bool s_first_called = true;
 
-/* Íâ²¿ÒıÓÃ */
+/* å¤–éƒ¨å¼•ç”¨ */
 extern BoardConfig_t boardConfig;
 
-/* ==================== ¸¨Öúº¯Êı ==================== */
+/* ==================== è¾…åŠ©å‡½æ•° ==================== */
 static int32_t CompensateAdvancedAngle(int32_t vel)
 {
     int32_t compensate;
@@ -91,11 +91,11 @@ static void CalcCurrentToOutput(int32_t current)
 
     if (s_foc_current > 0)
     {
-        s_foc_position = s_est_position + SOFT_DIVIDE_NUM;  /* ³¬Ç°90¡ã */
+        s_foc_position = s_est_position + SOFT_DIVIDE_NUM;  /* è¶…å‰90Â° */
     }
     else if (s_foc_current < 0)
     {
-        s_foc_position = s_est_position - SOFT_DIVIDE_NUM;  /* ÖÍºó90¡ã */
+        s_foc_position = s_est_position - SOFT_DIVIDE_NUM;  /* æ»å90Â° */
     }
     else
     {
@@ -107,11 +107,11 @@ static void CalcCurrentToOutput(int32_t current)
 
 static void CalcPidToOutput(int32_t speed)
 {
-    /* PID ËÙ¶È»· */
+    /* PID é€Ÿåº¦ç¯ */
     s_config->ctrlParams.pid.vErrorLast = s_config->ctrlParams.pid.vError;
     s_config->ctrlParams.pid.vError = speed - s_est_velocity;
 
-    /* ÏŞ·ù */
+    /* é™å¹… */
     if (s_config->ctrlParams.pid.vError > (1024 * 1024))
         s_config->ctrlParams.pid.vError = (1024 * 1024);
     if (s_config->ctrlParams.pid.vError < (-1024 * 1024))
@@ -119,28 +119,28 @@ static void CalcPidToOutput(int32_t speed)
 
     s_config->ctrlParams.pid.outputKp = s_config->ctrlParams.pid.kp * s_config->ctrlParams.pid.vError;
 
-    /* »ı·ÖÏî */
+    /* ç§¯åˆ†é¡¹ */
     s_config->ctrlParams.pid.integralRound += (s_config->ctrlParams.pid.ki * s_config->ctrlParams.pid.vError);
     s_config->ctrlParams.pid.integralRemainder = s_config->ctrlParams.pid.integralRound >> 10;
     s_config->ctrlParams.pid.integralRound -= (s_config->ctrlParams.pid.integralRemainder << 10);
     s_config->ctrlParams.pid.outputKi += s_config->ctrlParams.pid.integralRemainder;
 
-    /* »ı·ÖÏŞ·ù */
+    /* ç§¯åˆ†é™å¹… */
     if (s_config->ctrlParams.pid.outputKi > (s_config->motionParams.ratedCurrent << 10))
         s_config->ctrlParams.pid.outputKi = (s_config->motionParams.ratedCurrent << 10);
     else if (s_config->ctrlParams.pid.outputKi < -(s_config->motionParams.ratedCurrent << 10))
         s_config->ctrlParams.pid.outputKi = -(s_config->motionParams.ratedCurrent << 10);
 
-    /* Î¢·ÖÏî */
+    /* å¾®åˆ†é¡¹ */
     s_config->ctrlParams.pid.outputKd = s_config->ctrlParams.pid.kd *
                                         (s_config->ctrlParams.pid.vError - s_config->ctrlParams.pid.vErrorLast);
 
-    /* ×ÜÊä³ö */
+    /* æ€»è¾“å‡º */
     s_config->ctrlParams.pid.output = (s_config->ctrlParams.pid.outputKp +
                                        s_config->ctrlParams.pid.outputKi +
                                        s_config->ctrlParams.pid.outputKd) >> 10;
 
-    /* Êä³öÏŞ·ù */
+    /* è¾“å‡ºé™å¹… */
     if (s_config->ctrlParams.pid.output > s_config->motionParams.ratedCurrent)
         s_config->ctrlParams.pid.output = s_config->motionParams.ratedCurrent;
     else if (s_config->ctrlParams.pid.output < -s_config->motionParams.ratedCurrent)
@@ -156,41 +156,41 @@ static void CalcPidToOutput(int32_t speed)
 
 static void CalcDceToOutput(int32_t location, int32_t speed)
 {
-    /* DCE Ë«±Õ»·¿ØÖÆÆ÷ */
+    /* DCE åŒé—­ç¯æ§åˆ¶å™¨ */
     s_config->ctrlParams.dce.pError = location - s_est_position;
     s_config->ctrlParams.dce.vError = (speed - s_est_velocity) >> 7;
 
-    /* ÏŞ·ù */
+    /* é™å¹… */
     if (s_config->ctrlParams.dce.pError > 3200) s_config->ctrlParams.dce.pError = 3200;
     if (s_config->ctrlParams.dce.pError < -3200) s_config->ctrlParams.dce.pError = -3200;
     if (s_config->ctrlParams.dce.vError > 4000) s_config->ctrlParams.dce.vError = 4000;
     if (s_config->ctrlParams.dce.vError < -4000) s_config->ctrlParams.dce.vError = -4000;
 
-    /* ±ÈÀıÏî */
+    /* æ¯”ä¾‹é¡¹ */
     s_config->ctrlParams.dce.outputKp = s_config->ctrlParams.dce.kp * s_config->ctrlParams.dce.pError;
 
-    /* »ı·ÖÏî */
+    /* ç§¯åˆ†é¡¹ */
     s_config->ctrlParams.dce.integralRound += (s_config->ctrlParams.dce.ki * s_config->ctrlParams.dce.pError +
                                                s_config->ctrlParams.dce.kv * s_config->ctrlParams.dce.vError);
     s_config->ctrlParams.dce.integralRemainder = s_config->ctrlParams.dce.integralRound >> 7;
     s_config->ctrlParams.dce.integralRound -= (s_config->ctrlParams.dce.integralRemainder << 7);
     s_config->ctrlParams.dce.outputKi += s_config->ctrlParams.dce.integralRemainder;
 
-    /* »ı·ÖÏŞ·ù */
+    /* ç§¯åˆ†é™å¹… */
     if (s_config->ctrlParams.dce.outputKi > (s_config->motionParams.ratedCurrent << 10))
         s_config->ctrlParams.dce.outputKi = (s_config->motionParams.ratedCurrent << 10);
     else if (s_config->ctrlParams.dce.outputKi < -(s_config->motionParams.ratedCurrent << 10))
         s_config->ctrlParams.dce.outputKi = -(s_config->motionParams.ratedCurrent << 10);
 
-    /* Î¢·ÖÏî */
+    /* å¾®åˆ†é¡¹ */
     s_config->ctrlParams.dce.outputKd = s_config->ctrlParams.dce.kd * s_config->ctrlParams.dce.vError;
 
-    /* ×ÜÊä³ö */
+    /* æ€»è¾“å‡º */
     s_config->ctrlParams.dce.output = (s_config->ctrlParams.dce.outputKp +
                                        s_config->ctrlParams.dce.outputKi +
                                        s_config->ctrlParams.dce.outputKd) >> 10;
 
-    /* Êä³öÏŞ·ù */
+    /* è¾“å‡ºé™å¹… */
     if (s_config->ctrlParams.dce.output > s_config->motionParams.ratedCurrent)
         s_config->ctrlParams.dce.output = s_config->motionParams.ratedCurrent;
     else if (s_config->ctrlParams.dce.output < -s_config->motionParams.ratedCurrent)
@@ -210,7 +210,7 @@ static void ClearIntegral(void)
     s_config->ctrlParams.dce.outputKi = 0;
 }
 
-/* ==================== ¹«¹²º¯Êı ==================== */
+/* ==================== å…¬å…±å‡½æ•° ==================== */
 void Motor_Init(void)
 {
     s_first_called = true;
@@ -219,7 +219,7 @@ void Motor_Init(void)
     s_stalled_time = 0;
     s_overload_time = 0;
 
-    /* ³õÊ¼»¯ÔË¶¯¹æ»®Æ÷ */
+    /* åˆå§‹åŒ–è¿åŠ¨è§„åˆ’å™¨ */
     if (s_config)
     {
         g_motion_config = &s_config->motionParams;
@@ -239,12 +239,12 @@ void Motor_SetConfig(Motor_Config_t* config)
 void Motor_Tick20kHz(void)
 {
     MT6816_UpdateAngle();
-    /* ¶ÁÈ¡±àÂëÆ÷½Ç¶È*/
+    /* è¯»å–ç¼–ç å™¨è§’åº¦*/
     uint16_t rectified_angle = 0;
     rectified_angle = MT6816_GetRectifiedAngle();
 
 
-    /* Ê×´Îµ÷ÓÃ£º³õÊ¼»¯Î»ÖÃ */
+    /* é¦–æ¬¡è°ƒç”¨ï¼šåˆå§‹åŒ–ä½ç½® */
     if (s_first_called)
     {
         int32_t angle;
@@ -267,7 +267,7 @@ void Motor_Tick20kHz(void)
         return;
     }
 
-    /* ¸üĞÂÎ»ÖÃ */
+    /* æ›´æ–°ä½ç½® */
     s_real_lap_position_last = s_real_lap_position;
     s_real_lap_position = rectified_angle;
 
@@ -280,25 +280,25 @@ void Motor_Tick20kHz(void)
     s_real_position_last = s_real_position;
     s_real_position += delta;
 
-    /* ¹À¼ÆËÙ¶È */
+    /* ä¼°è®¡é€Ÿåº¦ */
     s_est_velocity_integral += ((s_real_position - s_real_position_last) * CONTROL_FREQUENCY +
                                 ((s_est_velocity << 5) - s_est_velocity));
     s_est_velocity = s_est_velocity_integral >> 5;
     s_est_velocity_integral -= (s_est_velocity << 5);
 
-    /* ¹À¼ÆÎ»ÖÃ£¨´ø³¬Ç°½Ç²¹³¥£©*/
+    /* ä¼°è®¡ä½ç½®ï¼ˆå¸¦è¶…å‰è§’è¡¥å¿ï¼‰*/
     s_est_lead_position = CompensateAdvancedAngle(s_est_velocity);
     s_est_position = s_real_position + s_est_lead_position;
 
-    /* ¿ØÖÆÑ­»· */
-    if (s_is_stalled || s_soft_disable || !EncoderCalibrator_IsCalibrated())  /* ĞİÃß */
+    /* æ§åˆ¶å¾ªç¯ */
+    if (s_is_stalled || s_soft_disable || !EncoderCalibrator_IsCalibrated())  /* ä¼‘çœ  */
     {
         ClearIntegral();
         s_foc_position = 0;
         s_foc_current = 0;
         TB67H450_Sleep();
     }
-    else if (s_soft_brake)     /* É²³µ */
+    else if (s_soft_brake)     /* åˆ¹è½¦ */
     {
         ClearIntegral();
         s_foc_position = 0;
@@ -330,14 +330,14 @@ void Motor_Tick20kHz(void)
         }
     }
 
-    /* Ä£Ê½ÇĞ»» */
+    /* æ¨¡å¼åˆ‡æ¢ */
     if (s_mode_running != s_request_mode)
     {
         s_mode_running = s_request_mode;
         s_soft_new_curve = true;
     }
 
-    /* ÏŞ·ù */
+    /* é™å¹… */
     if (s_goal_velocity > s_config->motionParams.ratedVelocity)
         s_goal_velocity = s_config->motionParams.ratedVelocity;
     else if (s_goal_velocity < -s_config->motionParams.ratedVelocity)
@@ -347,7 +347,7 @@ void Motor_Tick20kHz(void)
     else if (s_goal_current < -s_config->motionParams.ratedCurrent)
         s_goal_current = -s_config->motionParams.ratedCurrent;
 
-    /* ÔË¶¯¹æ»® */
+    /* è¿åŠ¨è§„åˆ’ */
     if ((s_soft_disable && !s_goal_disable) || (s_soft_brake && !s_goal_brake))
     {
         s_soft_new_curve = true;
@@ -381,7 +381,7 @@ void Motor_Tick20kHz(void)
         }
     }
 
-    /* ¼ÆËãÈíÄ¿±ê */
+    /* è®¡ç®—è½¯ç›®æ ‡ */
     switch (s_mode_running)
     {
         case MODE_COMMAND_POSITION:
@@ -412,7 +412,7 @@ void Motor_Tick20kHz(void)
     s_soft_disable = s_goal_disable;
     s_soft_brake = s_goal_brake;
 
-    /* ¹ÊÕÏ¼ì²â */
+    /* æ•…éšœæ£€æµ‹ */
     int32_t current_abs = abs(s_foc_current);
 
     if (s_config->ctrlParams.stallProtectSwitch)
@@ -438,7 +438,7 @@ void Motor_Tick20kHz(void)
         }
     }
 
-    /* ¹ıÔØ¼ì²â */
+    /* è¿‡è½½æ£€æµ‹ */
     if ((s_mode_running != MODE_COMMAND_CURRENT) && (s_mode_running != MODE_PWM_CURRENT) &&
         current_abs == s_config->motionParams.ratedCurrent)
     {
@@ -457,7 +457,7 @@ void Motor_Tick20kHz(void)
         s_overload_flag = false;
     }
 
-    /* ×´Ì¬»ú */
+    /* çŠ¶æ€æœº */
     if (!EncoderCalibrator_IsCalibrated())
     {
         s_state = STATE_NO_CALIB;
@@ -476,7 +476,7 @@ void Motor_Tick20kHz(void)
     }
     else
     {
-        // ¼ÓÉÏÄ£Ê½ÅĞ¶Ï
+        // åŠ ä¸Šæ¨¡å¼åˆ¤æ–­
         if (s_mode_running == MODE_COMMAND_POSITION)
         {
             if ((s_soft_position == s_goal_position) && (s_soft_velocity == 0))
@@ -505,7 +505,7 @@ void Motor_Tick20kHz(void)
     }
 }
 
-/* ==================== ¿ØÖÆ½Ó¿Ú ==================== */
+/* ==================== æ§åˆ¶æ¥å£ ==================== */
 void Motor_SetMode(Motor_Mode_t mode)
 {
     s_request_mode = mode;
@@ -551,7 +551,7 @@ void Motor_ClearStallFlag(void)
     s_is_stalled = false;
 }
 
-/* ==================== ×´Ì¬¶ÁÈ¡ ==================== */
+/* ==================== çŠ¶æ€è¯»å– ==================== */
 Motor_State_t Motor_GetState(void)
 {
     return s_state;
@@ -583,13 +583,13 @@ float Motor_GetCurrent(void)
 
 bool Motor_IsCalibrated(void)
 {
-    // Ö±½Ó´Ó±àÂëÆ÷Ğ£×¼Ä£¿é»ñÈ¡×´Ì¬
+    // ç›´æ¥ä»ç¼–ç å™¨æ ¡å‡†æ¨¡å—è·å–çŠ¶æ€
     return EncoderCalibrator_IsCalibrated();
 }
 
 void Motor_TriggerCalibration(void)
 {
-    // ´¥·¢±àÂëÆ÷Ğ£×¼
+    // è§¦å‘ç¼–ç å™¨æ ¡å‡†
     EncoderCalibrator_Trigger();
 }
 
@@ -609,10 +609,10 @@ void Motor_GetTelemetry(float *pos, float *vel, float *cur, uint8_t *mode, uint8
 
 void Motor_ZeroPosition(void)
 {
-    // °Ñµ±Ç°Î»ÖÃÉèÎªĞÂµÄ HomeOffset
+    // æŠŠå½“å‰ä½ç½®è®¾ä¸ºæ–°çš„ HomeOffset
     s_config->motionParams.encoderHomeOffset = s_real_position % MOTOR_SUBDIVIDE_STEPS;
 
-    // ±£´æµ½ EEPROM
+    // ä¿å­˜åˆ° EEPROM
     boardConfig.encoderHomeOffset = s_config->motionParams.encoderHomeOffset;
     EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
 }

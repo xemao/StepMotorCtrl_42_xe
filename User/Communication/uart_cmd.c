@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/* 外部引用 */
+/* 澶栭儴寮曠敤 */
 extern BoardConfig_t boardConfig;
 
 void UartCmd_Process(uint8_t* data, uint16_t len)
@@ -18,7 +18,7 @@ void UartCmd_Process(uint8_t* data, uint16_t len)
 	
     switch (data[0])
     {
-        case 'c':  /* 电流模式 */
+        case 'c':  /* 鐢垫祦妯″紡 */
             ret = sscanf((char*)data, "c %f", &cur);
             if (ret < 1) {
                 Uart_SendString("[error] Command format error!\r\n");
@@ -30,7 +30,7 @@ void UartCmd_Process(uint8_t* data, uint16_t len)
             }
             break;
             
-        case 'v':  /* 速度模式 */
+        case 'v':  /* 閫熷害妯″紡 */
             ret = sscanf((char*)data, "v %f", &vel);
             if (ret < 1) {
                 Uart_SendString("[error] Command format error!\r\n");
@@ -42,7 +42,7 @@ void UartCmd_Process(uint8_t* data, uint16_t len)
             }
             break;
             
-        case 'p':  /* 位置模式 */
+        case 'p':  /* 浣嶇疆妯″紡 */
             ret = sscanf((char*)data, "p %f", &pos);  
             if (ret < 1) {
                 Uart_SendString("[error] Command format error!\r\n");
@@ -54,15 +54,15 @@ void UartCmd_Process(uint8_t* data, uint16_t len)
             }
             break;
 						
-				case 's':  /* 停止 */
+				case 's':  /* 鍋滄 */
 							Motor_SetMode(MODE_STOP);
               break;
 				
-				case 'z':  /* 位置清零 */
+				case 'z':  /* 浣嶇疆娓呴浂 */
 							Motor_ZeroPosition();
               break;
 				
-         case 'l':  /* 清楚堵转 */
+         case 'l':  /* 娓呮鍫佃浆 */
 							Motor_ClearStallFlag();
               break;
         default:

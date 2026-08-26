@@ -5,10 +5,10 @@
 #include <stdbool.h>
 #include "motor.h"
 
-/* LED³õÊ¼»¯ */
+/* LEDåˆå§‹åŒ– */
 void LED_Init(void);
 
-/* ¶¨Ê±Æ÷Tick´¦Àí£¬ÔÚÖ÷Ñ­»·»ò¶¨Ê±Æ÷ÖĞµ÷ÓÃ */
+/* å®šæ—¶å™¨Tickå¤„ç†ï¼Œåœ¨ä¸»å¾ªç¯æˆ–å®šæ—¶å™¨ä¸­è°ƒç”¨ */
 void LED_Tick(uint32_t time_elapse_millis, Motor_State_t state);
 
 #endif /* LED_H */

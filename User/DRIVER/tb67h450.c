@@ -4,25 +4,25 @@
 #include "gpio.h"
 #include "main.h"
 
-/* ÏàÎ»Êý¾Ý½á¹¹ */
+/* ç›¸ä½æ•°æ®ç»“æž„ */
 typedef struct {
     uint16_t sinMapPtr;
     int16_t sinMapData;
     uint16_t dacValue12Bits;
 } Phase_t;
 
-/* ¾²Ì¬±äÁ¿ */
+/* é™æ€å˜é‡ */
 static Phase_t s_phaseA;
 static Phase_t s_phaseB;
 
-/* ÉèÖÃÁ½ÏàµçÁ÷ */
+/* è®¾ç½®ä¸¤ç›¸ç”µæµ */
 static void TB67H450_SetTwoCoilsCurrent(uint16_t currentA, uint16_t currentB)
 {
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, currentA >> 2);
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, currentB >> 2);
 }
 
-/* ÉèÖÃAÏàÊäÈë */
+/* è®¾ç½®Aç›¸è¾“å…¥ */
 static void TB67H450_SetInputA(bool statusAp, bool statusAm)
 {
     if (statusAp) {
@@ -38,7 +38,7 @@ static void TB67H450_SetInputA(bool statusAp, bool statusAm)
     }
 }
 
-/* ÉèÖÃBÏàÊäÈë */
+/* è®¾ç½®Bç›¸è¾“å…¥ */
 static void TB67H450_SetInputB(bool statusBp, bool statusBm)
 {
     if (statusBp) {
@@ -59,33 +59,33 @@ void TB67H450_SetFocCurrentVector(uint32_t _directionInCount, int32_t _current_m
     uint32_t dac_reg;
     int32_t current_abs;
     
-    /* 1. ¼ÆËãA/BÏàµÄÕýÏÒ±íÖ¸Õë */
+    /* 1. è®¡ç®—A/Bç›¸çš„æ­£å¼¦è¡¨æŒ‡é’ˆ */
     s_phaseB.sinMapPtr = _directionInCount & 0x000003FF;
     s_phaseA.sinMapPtr = (s_phaseB.sinMapPtr + 256) & 0x000003FF;
     
-    /* 2. ²éÕýÏÒ±í */
+    /* 2. æŸ¥æ­£å¼¦è¡¨ */
     s_phaseA.sinMapData = sin_pi_m2[s_phaseA.sinMapPtr];
     s_phaseB.sinMapData = sin_pi_m2[s_phaseB.sinMapPtr];
     
-    /* 3. ¼ÆËãDACÖµ */
+    /* 3. è®¡ç®—DACå€¼ */
     current_abs = (_current_mA > 0) ? _current_mA : -_current_mA;
-		// µçÁ÷(mA) ×ª DACÖµ (0-4095)
-		// ¹«Ê½: DAC = µçÁ÷ ¡Á (4095 / 3300) ¡Ö µçÁ÷ ¡Á 1.24
-		// 5083 >> 12 = 5083 / 4096 ¡Ö 1.24
+		// ç”µæµ(mA) è½¬ DACå€¼ (0-4095)
+		// å…¬å¼: DAC = ç”µæµ Ã— (4095 / 3300) â‰ˆ ç”µæµ Ã— 1.24
+		// 5083 >> 12 = 5083 / 4096 â‰ˆ 1.24
     dac_reg = (uint32_t)(current_abs * 5083) >> 12;
     dac_reg = dac_reg & 0x00000FFF;
     
-    /* È¡¾ø¶ÔÖµÔÙ³Ë */
+    /* å–ç»å¯¹å€¼å†ä¹˜ */
     int16_t absA = (s_phaseA.sinMapData > 0) ? s_phaseA.sinMapData : -s_phaseA.sinMapData;
     int16_t absB = (s_phaseB.sinMapData > 0) ? s_phaseB.sinMapData : -s_phaseB.sinMapData;
     
     s_phaseA.dacValue12Bits = (uint32_t)(dac_reg * absA) >> sin_pi_m2_dpiybit;
     s_phaseB.dacValue12Bits = (uint32_t)(dac_reg * absB) >> sin_pi_m2_dpiybit;
     
-    /* 4. ÉèÖÃPWMÕ¼¿Õ±È */
+    /* 4. è®¾ç½®PWMå ç©ºæ¯” */
     TB67H450_SetTwoCoilsCurrent(s_phaseA.dacValue12Bits, s_phaseB.dacValue12Bits);
     
-    /* 5. ÉèÖÃ·½ÏòÒý½Å */
+    /* 5. è®¾ç½®æ–¹å‘å¼•è„š */
     if (s_phaseA.sinMapData > 0) {
         TB67H450_SetInputA(true, false);
     } else if (s_phaseA.sinMapData < 0) {

@@ -3,22 +3,22 @@
 #include <stdio.h>
 #include "usart.h"
 #include <string.h>
-/* ÅäÖÃÖ¸Õë */
+/* é…ç½®æŒ‡é’ˆ */
 MotionPlanner_Config_t* g_motion_config = NULL;
 
-/* ==================== CurrentTracker È«¾Ö±äÁ¿ ==================== */
+/* ==================== CurrentTracker å…¨å±€å˜é‡ ==================== */
 static int32_t s_current_acc = 0;
 static int32_t s_current_integral = 0;
 static int32_t s_track_current = 0;
 int32_t g_go_current = 0;
 
-/* ==================== VelocityTracker È«¾Ö±äÁ¿ ==================== */
+/* ==================== VelocityTracker å…¨å±€å˜é‡ ==================== */
 static int32_t s_velocity_acc = 0;
 static int32_t s_velocity_integral = 0;
 static int32_t s_track_velocity = 0;
 int32_t g_go_velocity = 0;
 
-/* ==================== PositionTracker È«¾Ö±äÁ¿ ==================== */
+/* ==================== PositionTracker å…¨å±€å˜é‡ ==================== */
 static int32_t s_velocity_up_acc = 0;
 static int32_t s_velocity_down_acc = 0;
 static float s_quick_velocity_down_acc = 0;
@@ -30,7 +30,7 @@ static int32_t s_track_position = 0;
 int32_t g_go_location = 0;
 int32_t g_go_location_velocity = 0;
 
-/* ==================== PositionInterpolator È«¾Ö±äÁ¿ ==================== */
+/* ==================== PositionInterpolator å…¨å±€å˜é‡ ==================== */
 static int32_t s_record_position = 0;
 static int32_t s_record_position_last = 0;
 static int32_t s_est_position = 0;
@@ -39,7 +39,7 @@ static int32_t s_est_velocity_interp = 0;
 int32_t g_interp_go_position = 0;
 int32_t g_interp_go_velocity = 0;
 
-/* ==================== TrajectoryTracker È«¾Ö±äÁ¿ ==================== */
+/* ==================== TrajectoryTracker å…¨å±€å˜é‡ ==================== */
 static int32_t s_velocity_down_acc_traj = 0;
 static int32_t s_dynamic_velocity_acc = 0;
 static int32_t s_update_time = 0;
@@ -54,7 +54,7 @@ static int32_t s_position_now = 0;
 int32_t g_traj_go_position = 0;
 int32_t g_traj_go_velocity = 0;
 
-/* ==================== ¸¨Öúº¯Êı ==================== */
+/* ==================== è¾…åŠ©å‡½æ•° ==================== */
 static void CalcCurrentIntegral(int32_t current)
 {
     s_current_integral += current;
@@ -97,7 +97,7 @@ static void CalcTrajPositionIntegral(int32_t value)
     s_velocity_now_remainder = s_velocity_now_remainder % CONTROL_FREQUENCY;
 }
 
-/* ==================== CurrentTracker ÊµÏÖ ==================== */
+/* ==================== CurrentTracker å®ç° ==================== */
 void CurrentTracker_Init(void)
 {
     CurrentTracker_SetCurrentAcc(g_motion_config->ratedCurrentAcc);
@@ -113,7 +113,7 @@ void CurrentTracker_NewTask(int32_t realCurrent)
     s_current_integral = 0;
     s_track_current = realCurrent;
 }
-//µçÁ÷ÌİĞÎÆ½»¬¹æ»®¿ØÖÆ
+//ç”µæµæ¢¯å½¢å¹³æ»‘è§„åˆ’æ§åˆ¶
 void CurrentTracker_CalcSoftGoal(int32_t goalCurrent)
 {
     int32_t delta = goalCurrent - s_track_current;
@@ -168,7 +168,7 @@ void CurrentTracker_CalcSoftGoal(int32_t goalCurrent)
     g_go_current = s_track_current;
 }
 
-/* ==================== VelocityTracker ÊµÏÖ ==================== */
+/* ==================== VelocityTracker å®ç° ==================== */
 void VelocityTracker_Init(void)
 {
     VelocityTracker_SetVelocityAcc(g_motion_config->ratedVelocityAcc);
@@ -185,7 +185,7 @@ void VelocityTracker_NewTask(int32_t realVelocity)
     s_track_velocity = realVelocity;
 }
 
-//ËÙ¶ÈÌİĞÎÆ½»¬¹æ»®¿ØÖÆ
+//é€Ÿåº¦æ¢¯å½¢å¹³æ»‘è§„åˆ’æ§åˆ¶
 void VelocityTracker_CalcSoftGoal(int32_t goalVelocity)
 {
     int32_t delta = goalVelocity - s_track_velocity;
@@ -240,7 +240,7 @@ void VelocityTracker_CalcSoftGoal(int32_t goalVelocity)
     g_go_velocity = s_track_velocity;
 }
 
-/* ==================== PositionTracker ÊµÏÖ ==================== */
+/* ==================== PositionTracker å®ç° ==================== */
 void PositionTracker_Init(void)
 {
     PositionTracker_SetVelocityAcc(g_motion_config->ratedVelocityAcc);
@@ -261,15 +261,15 @@ void PositionTracker_NewTask(int32_t realLocation, int32_t realSpeed)
     s_position_integral = 0;
     s_track_position = realLocation;
 }
-//Î»ÖÃSĞÎÆ½»¬¹æ»®¿ØÖÆ
+//ä½ç½®Så½¢å¹³æ»‘è§„åˆ’æ§åˆ¶
 void PositionTracker_CalcSoftGoal(int32_t goalPosition)
 {
-    int32_t delta = goalPosition - s_track_position;  // Ê£Óà¾àÀë
+    int32_t delta = goalPosition - s_track_position;  // å‰©ä½™è·ç¦»
 
-    /* ==================== Çé¿ö1£ºÒÑµ½´ïÄ¿±êÎ»ÖÃ ==================== */
+    /* ==================== æƒ…å†µ1ï¼šå·²åˆ°è¾¾ç›®æ ‡ä½ç½® ==================== */
     if (delta == 0)
     {
-        // ËÙ¶ÈºÜĞ¡Ê±£¨ÔÚÉ²³µãĞÖµÄÚ£©£¬Ö±½ÓËø¶¨Í£Ö¹
+        // é€Ÿåº¦å¾ˆå°æ—¶ï¼ˆåœ¨åˆ¹è½¦é˜ˆå€¼å†…ï¼‰ï¼Œç›´æ¥é”å®šåœæ­¢
         if ((s_track_velocity_pos >= -s_speed_locking_brake) &&
             (s_track_velocity_pos <= s_speed_locking_brake))
         {
@@ -277,20 +277,20 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             s_track_velocity_pos = 0;
             s_position_integral = 0;
         }
-        // ËÙ¶ÈÎªÕı£¬ĞèÒª¼õËÙµ½0
+        // é€Ÿåº¦ä¸ºæ­£ï¼Œéœ€è¦å‡é€Ÿåˆ°0
         else if (s_track_velocity_pos > 0)
         {
-            CalcPositionVelocityIntegral(-s_velocity_down_acc);  // ¼õËÙ
-            if (s_track_velocity_pos <= 0)    // ÒÑ¾­¼õµ½0»òÒÔÏÂ
+            CalcPositionVelocityIntegral(-s_velocity_down_acc);  // å‡é€Ÿ
+            if (s_track_velocity_pos <= 0)    // å·²ç»å‡åˆ°0æˆ–ä»¥ä¸‹
             {
                 s_velocity_integral_pos = 0;
                 s_track_velocity_pos = 0;
             }
         }
-        // ËÙ¶ÈÎª¸º£¬ĞèÒª¼õËÙµ½0
+        // é€Ÿåº¦ä¸ºè´Ÿï¼Œéœ€è¦å‡é€Ÿåˆ°0
         else if (s_track_velocity_pos < 0)
         {
-            CalcPositionVelocityIntegral(s_velocity_down_acc);   // ¼õËÙ£¨·´Ïò£©
+            CalcPositionVelocityIntegral(s_velocity_down_acc);   // å‡é€Ÿï¼ˆåå‘ï¼‰
             if (s_track_velocity_pos >= 0)
             {
                 s_velocity_integral_pos = 0;
@@ -299,42 +299,42 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
         }
     }
 
-    /* ==================== Çé¿ö2£º»¹ĞèÒªÒÆ¶¯ ==================== */
+    /* ==================== æƒ…å†µ2ï¼šè¿˜éœ€è¦ç§»åŠ¨ ==================== */
     else
     {
-        /* ---------- ×ÓÇé¿ö2.1£ºµ±Ç°ËÙ¶ÈÎª0£¨´Ó¾²Ö¹¿ªÊ¼¼ÓËÙ£©---------- */
+        /* ---------- å­æƒ…å†µ2.1ï¼šå½“å‰é€Ÿåº¦ä¸º0ï¼ˆä»é™æ­¢å¼€å§‹åŠ é€Ÿï¼‰---------- */
         if (s_track_velocity_pos == 0)
         {
             if (delta > 0)
             {
-                CalcPositionVelocityIntegral(s_velocity_up_acc);   // ÕıÏò¼ÓËÙ
+                CalcPositionVelocityIntegral(s_velocity_up_acc);   // æ­£å‘åŠ é€Ÿ
             }
             else
             {
-                CalcPositionVelocityIntegral(-s_velocity_up_acc);  // ·´Ïò¼ÓËÙ
+                CalcPositionVelocityIntegral(-s_velocity_up_acc);  // åå‘åŠ é€Ÿ
             }
         }
 
-        /* ---------- ×ÓÇé¿ö2.2£ºÕıÏòÒÆ¶¯ÖĞ£¨·½ÏòºÍÄ¿±êÒ»ÖÂ£©---------- */
+        /* ---------- å­æƒ…å†µ2.2ï¼šæ­£å‘ç§»åŠ¨ä¸­ï¼ˆæ–¹å‘å’Œç›®æ ‡ä¸€è‡´ï¼‰---------- */
         else if ((delta > 0) && (s_track_velocity_pos > 0))
         {
-            // ¼ì²éµ±Ç°ËÙ¶ÈÊÇ·ñÔÚÏŞËÙ·¶Î§ÄÚ
+            // æ£€æŸ¥å½“å‰é€Ÿåº¦æ˜¯å¦åœ¨é™é€ŸèŒƒå›´å†…
             if (s_track_velocity_pos <= g_motion_config->ratedVelocity)
             {
-                // ºËĞÄ¹«Ê½£º¼ÆËã´Óµ±Ç°ËÙ¶È¼õµ½0ĞèÒªµÄ¾àÀë
+                // æ ¸å¿ƒå…¬å¼ï¼šè®¡ç®—ä»å½“å‰é€Ÿåº¦å‡åˆ°0éœ€è¦çš„è·ç¦»
                 // need_down = v2 / (2a)
                 int32_t need_down = (int32_t)((float)s_track_velocity_pos *
                                               (float)s_track_velocity_pos *
                                               s_quick_velocity_down_acc);
 
-                // ÅĞ¶Ï£ºÊ£Óà¾àÀëÊÇ·ñ×ã¹»¼õËÙ£¿
+                // åˆ¤æ–­ï¼šå‰©ä½™è·ç¦»æ˜¯å¦è¶³å¤Ÿå‡é€Ÿï¼Ÿ
                 if (abs(delta) > need_down)
                 {
-                    // ¾àÀë×ã¹»£¬¿ÉÒÔ¼ÌĞø¼ÓËÙ»ò±£³ÖÔÈËÙ
+                    // è·ç¦»è¶³å¤Ÿï¼Œå¯ä»¥ç»§ç»­åŠ é€Ÿæˆ–ä¿æŒåŒ€é€Ÿ
                     if (s_track_velocity_pos < g_motion_config->ratedVelocity)
                     {
-                        CalcPositionVelocityIntegral(s_velocity_up_acc);  // ¼ÌĞø¼ÓËÙ
-                        // ÏŞ·ù£º²»³¬¹ı×î´óËÙ¶È
+                        CalcPositionVelocityIntegral(s_velocity_up_acc);  // ç»§ç»­åŠ é€Ÿ
+                        // é™å¹…ï¼šä¸è¶…è¿‡æœ€å¤§é€Ÿåº¦
                         if (s_track_velocity_pos >= g_motion_config->ratedVelocity)
                         {
                             s_velocity_integral_pos = 0;
@@ -343,12 +343,12 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
                     }
                     else if (s_track_velocity_pos > g_motion_config->ratedVelocity)
                     {
-                        CalcPositionVelocityIntegral(-s_velocity_down_acc); // ¼õËÙµ½ÏŞËÙ
+                        CalcPositionVelocityIntegral(-s_velocity_down_acc); // å‡é€Ÿåˆ°é™é€Ÿ
                     }
                 }
                 else
                 {
-                    // ¾àÀë²»¹»ÁË£¬±ØĞë¿ªÊ¼¼õËÙ£¡
+                    // è·ç¦»ä¸å¤Ÿäº†ï¼Œå¿…é¡»å¼€å§‹å‡é€Ÿï¼
                     CalcPositionVelocityIntegral(-s_velocity_down_acc);
                     if (s_track_velocity_pos <= 0)
                     {
@@ -359,7 +359,7 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             }
             else
             {
-                // ËÙ¶È³¬ÏŞ£¬Ç¿ÖÆ¼õËÙ
+                // é€Ÿåº¦è¶…é™ï¼Œå¼ºåˆ¶å‡é€Ÿ
                 CalcPositionVelocityIntegral(-s_velocity_down_acc);
                 if (s_track_velocity_pos <= 0)
                 {
@@ -369,10 +369,10 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             }
         }
 
-        /* ---------- ×ÓÇé¿ö2.3£º·´ÏòÒÆ¶¯ÖĞ£¨·½ÏòºÍÄ¿±êÒ»ÖÂ£©---------- */
+        /* ---------- å­æƒ…å†µ2.3ï¼šåå‘ç§»åŠ¨ä¸­ï¼ˆæ–¹å‘å’Œç›®æ ‡ä¸€è‡´ï¼‰---------- */
         else if ((delta < 0) && (s_track_velocity_pos < 0))
         {
-            // Âß¼­ÓëÕıÏò¶Ô³Æ£¬·½ÏòÏà·´
+            // é€»è¾‘ä¸æ­£å‘å¯¹ç§°ï¼Œæ–¹å‘ç›¸å
             if (s_track_velocity_pos >= -g_motion_config->ratedVelocity)
             {
                 int32_t need_down = (int32_t)((float)s_track_velocity_pos *
@@ -415,10 +415,10 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             }
         }
 
-        /* ---------- ×ÓÇé¿ö2.4£ºËÙ¶È·½ÏòÓëÄ¿±ê·½ÏòÏà·´ ---------- */
+        /* ---------- å­æƒ…å†µ2.4ï¼šé€Ÿåº¦æ–¹å‘ä¸ç›®æ ‡æ–¹å‘ç›¸å ---------- */
         else if ((delta < 0) && (s_track_velocity_pos > 0))
         {
-            // ĞèÒª·´Ïò£¬µ«µ±Ç°ÕıÔÚÕıÏòÔË¶¯ ¡ú ÏÈ¼õËÙµ½0
+            // éœ€è¦åå‘ï¼Œä½†å½“å‰æ­£åœ¨æ­£å‘è¿åŠ¨ â†’ å…ˆå‡é€Ÿåˆ°0
             CalcPositionVelocityIntegral(-s_velocity_down_acc);
             if (s_track_velocity_pos <= 0)
             {
@@ -427,10 +427,10 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
             }
         }
 
-        /* ---------- ×ÓÇé¿ö2.5£ºËÙ¶È·½ÏòÓëÄ¿±ê·½ÏòÏà·´ ---------- */
+        /* ---------- å­æƒ…å†µ2.5ï¼šé€Ÿåº¦æ–¹å‘ä¸ç›®æ ‡æ–¹å‘ç›¸å ---------- */
         else if ((delta > 0) && (s_track_velocity_pos < 0))
         {
-            // ĞèÒªÕıÏò£¬µ«µ±Ç°ÕıÔÚ·´ÏòÔË¶¯ ¡ú ÏÈ¼õËÙµ½0
+            // éœ€è¦æ­£å‘ï¼Œä½†å½“å‰æ­£åœ¨åå‘è¿åŠ¨ â†’ å…ˆå‡é€Ÿåˆ°0
             CalcPositionVelocityIntegral(s_velocity_down_acc);
             if (s_track_velocity_pos >= 0)
             {
@@ -440,15 +440,15 @@ void PositionTracker_CalcSoftGoal(int32_t goalPosition)
         }
     }
 
-    /* ¸ù¾İµ±Ç°ËÙ¶È£¬¸üĞÂÎ»ÖÃ */
+    /* æ ¹æ®å½“å‰é€Ÿåº¦ï¼Œæ›´æ–°ä½ç½® */
     CalcPositionIntegral(s_track_velocity_pos);
 
-    /* Êä³ö¹æ»®ºóµÄÎ»ÖÃºÍËÙ¶È */
+    /* è¾“å‡ºè§„åˆ’åçš„ä½ç½®å’Œé€Ÿåº¦ */
     g_go_location = s_track_position;
     g_go_location_velocity = s_track_velocity_pos;
 }
 
-/* ==================== PositionInterpolator ÊµÏÖ ==================== */
+/* ==================== PositionInterpolator å®ç° ==================== */
 void PositionInterpolator_Init(void)
 {
     /* Nothing to init */
@@ -461,7 +461,7 @@ void PositionInterpolator_NewTask(int32_t realPosition, int32_t realVelocity)
     s_est_position = realPosition;
     s_est_velocity_interp = realVelocity;
 }
-//Step/DirÄ£Ê½
+//Step/Diræ¨¡å¼
 void PositionInterpolator_CalcSoftGoal(int32_t goalPosition)
 {
     s_record_position_last = s_record_position;
@@ -478,7 +478,7 @@ void PositionInterpolator_CalcSoftGoal(int32_t goalPosition)
     g_interp_go_velocity = s_est_velocity_interp;
 }
 
-/* ==================== TrajectoryTracker ÊµÏÖ ==================== */
+/* ==================== TrajectoryTracker å®ç° ==================== */
 void TrajectoryTracker_Init(int32_t updateTimeout)
 {
     TrajectoryTracker_SetSlowDownVelocityAcc(g_motion_config->ratedVelocityAcc);
@@ -502,75 +502,75 @@ void TrajectoryTracker_NewTask(int32_t realLocation, int32_t realSpeed)
 
 void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
 {
-    /* ==================== µÚ1²½£º¼ì²éÄ¿±êÊÇ·ñ±ä»¯ ==================== */
+    /* ==================== ç¬¬1æ­¥ï¼šæ£€æŸ¥ç›®æ ‡æ˜¯å¦å˜åŒ– ==================== */
     if (goalVelocity != s_record_velocity || goalPosition != s_record_position_traj)
     {
-        // Ä¿±êÓĞ±ä»¯£¨ÊÕµ½ÁËĞÂµÄ¹ì¼£Ö¸Áî£©
-        s_update_time = 0;                      // ÖØÖÃ³¬Ê±¼ÆÊ±Æ÷
-        s_record_velocity = goalVelocity;       // ¼ÇÂ¼ĞÂÄ¿±êËÙ¶È
-        s_record_position_traj = goalPosition;  // ¼ÇÂ¼ĞÂÄ¿±êÎ»ÖÃ
+        // ç›®æ ‡æœ‰å˜åŒ–ï¼ˆæ”¶åˆ°äº†æ–°çš„è½¨è¿¹æŒ‡ä»¤ï¼‰
+        s_update_time = 0;                      // é‡ç½®è¶…æ—¶è®¡æ—¶å™¨
+        s_record_velocity = goalVelocity;       // è®°å½•æ–°ç›®æ ‡é€Ÿåº¦
+        s_record_position_traj = goalPosition;  // è®°å½•æ–°ç›®æ ‡ä½ç½®
 
         /**
-         * ºËĞÄ¹«Ê½£º¼ÆËãĞèÒªµÄ¼ÓËÙ¶È
+         * æ ¸å¿ƒå…¬å¼ï¼šè®¡ç®—éœ€è¦çš„åŠ é€Ÿåº¦
          *
-         * ÓÉÔË¶¯Ñ§¹«Ê½£ºv22 - v12 = 2 ¡Á a ¡Á s
-         * ÍÆµ¼³ö£ºa = (v22 - v12) / (2 ¡Á s)
+         * ç”±è¿åŠ¨å­¦å…¬å¼ï¼šv22 - v12 = 2 Ã— a Ã— s
+         * æ¨å¯¼å‡ºï¼ša = (v22 - v12) / (2 Ã— s)
          *
-         * ´úÂëÖĞÓÃ (v2 + v1)(v2 - v1) ´úÌæ v22 - v12£¬
-         * ±ÜÃâ´óÊıÆ½·½µ¼ÖÂÒç³ö¡£
+         * ä»£ç ä¸­ç”¨ (v2 + v1)(v2 - v1) ä»£æ›¿ v22 - v12ï¼Œ
+         * é¿å…å¤§æ•°å¹³æ–¹å¯¼è‡´æº¢å‡ºã€‚
          *
-         * ²ÎÊıËµÃ÷£º
-         *   goalVelocity   = v2£¨Ä¿±êËÙ¶È£©
-         *   s_velocity_now = v1£¨µ±Ç°ËÙ¶È£©
-         *   goalPosition - s_position_now = s£¨Î»ÒÆ£©
+         * å‚æ•°è¯´æ˜ï¼š
+         *   goalVelocity   = v2ï¼ˆç›®æ ‡é€Ÿåº¦ï¼‰
+         *   s_velocity_now = v1ï¼ˆå½“å‰é€Ÿåº¦ï¼‰
+         *   goalPosition - s_position_now = sï¼ˆä½ç§»ï¼‰
          */
         s_dynamic_velocity_acc = (int32_t)((float)(goalVelocity + s_velocity_now) *
                                            (float)(goalVelocity - s_velocity_now) /
                                            (float)(2 * (goalPosition - s_position_now)));
-        s_overtime_flag = false;                // Çå³ı³¬Ê±±êÖ¾
+        s_overtime_flag = false;                // æ¸…é™¤è¶…æ—¶æ ‡å¿—
     }
-    /* ==================== µÚ2²½£ºÄ¿±êÎ´±ä»¯£¬¼ì²é³¬Ê± ==================== */
+    /* ==================== ç¬¬2æ­¥ï¼šç›®æ ‡æœªå˜åŒ–ï¼Œæ£€æŸ¥è¶…æ—¶ ==================== */
     else
     {
-        // ³¤Ê±¼äÃ»ÊÕµ½ĞÂÖ¸Áî£¬ÀÛ»ı³¬Ê±Ê±¼ä
+        // é•¿æ—¶é—´æ²¡æ”¶åˆ°æ–°æŒ‡ä»¤ï¼Œç´¯ç§¯è¶…æ—¶æ—¶é—´
         if (s_update_time >= (s_update_timeout * 1000))
         {
-            s_overtime_flag = true;             // ³¬Ê±£¡´¥·¢°²È«Í£³µ
+            s_overtime_flag = true;             // è¶…æ—¶ï¼è§¦å‘å®‰å…¨åœè½¦
         }
         else
         {
-            s_update_time += CONTROL_PERIOD_US; // ÀÛ¼ÓÊ±¼ä£¨µ¥Î»£ºÎ¢Ãë£©
+            s_update_time += CONTROL_PERIOD_US; // ç´¯åŠ æ—¶é—´ï¼ˆå•ä½ï¼šå¾®ç§’ï¼‰
         }
     }
 
-    /* ==================== µÚ3²½£º¸ù¾İÄ£Ê½Ö´ĞĞÔË¶¯ ==================== */
+    /* ==================== ç¬¬3æ­¥ï¼šæ ¹æ®æ¨¡å¼æ‰§è¡Œè¿åŠ¨ ==================== */
     if (s_overtime_flag)
     {
         /**
-         * ³¬Ê±Ä£Ê½£ºÍ¨ĞÅÖĞ¶Ï£¬°²È«Í£³µ
+         * è¶…æ—¶æ¨¡å¼ï¼šé€šä¿¡ä¸­æ–­ï¼Œå®‰å…¨åœè½¦
          *
-         * ×÷ÓÃ£ºÈç¹ûÉÏÎ»»ú³¤Ê±¼äÃ»ÓĞ·¢ËÍĞÂµÄ¹ì¼£Ö¸Áî£¬
-         *       ÈÏÎªÍ¨ĞÅ¿ÉÄÜÖĞ¶Ï£¬Ö÷¶¯¼õËÙµ½ 0¡£
+         * ä½œç”¨ï¼šå¦‚æœä¸Šä½æœºé•¿æ—¶é—´æ²¡æœ‰å‘é€æ–°çš„è½¨è¿¹æŒ‡ä»¤ï¼Œ
+         *       è®¤ä¸ºé€šä¿¡å¯èƒ½ä¸­æ–­ï¼Œä¸»åŠ¨å‡é€Ÿåˆ° 0ã€‚
          */
         if (s_velocity_now == 0)
         {
-            // ÒÑ¾­Í£Ö¹£¬ÎŞÊÂ¿É×ö
+            // å·²ç»åœæ­¢ï¼Œæ— äº‹å¯åš
             s_dynamic_vel_acc_remainder = 0;
         }
         else if (s_velocity_now > 0)
         {
-            // ÕıÏòÔË¶¯ ¡ú ¼õËÙ£¨¸º¼ÓËÙ¶È£©
+            // æ­£å‘è¿åŠ¨ â†’ å‡é€Ÿï¼ˆè´ŸåŠ é€Ÿåº¦ï¼‰
             CalcTrajVelocityIntegral(-s_velocity_down_acc_traj);
             if (s_velocity_now <= 0)
             {
-                // ÒÑ¾­¼õµ½ 0 »òÒÔÏÂ
+                // å·²ç»å‡åˆ° 0 æˆ–ä»¥ä¸‹
                 s_dynamic_vel_acc_remainder = 0;
                 s_velocity_now = 0;
             }
         }
         else
         {
-            // ·´ÏòÔË¶¯ ¡ú ¼õËÙ£¨Õı¼ÓËÙ¶È£¬ÒòÎªËÙ¶ÈÊÇ¸ºµÄ£©
+            // åå‘è¿åŠ¨ â†’ å‡é€Ÿï¼ˆæ­£åŠ é€Ÿåº¦ï¼Œå› ä¸ºé€Ÿåº¦æ˜¯è´Ÿçš„ï¼‰
             CalcTrajVelocityIntegral(s_velocity_down_acc_traj);
             if (s_velocity_now >= 0)
             {
@@ -582,18 +582,18 @@ void TrajectoryTracker_CalcSoftGoal(int32_t goalPosition, int32_t goalVelocity)
     else
     {
         /**
-         * Õı³£Ä£Ê½£º°´¼ÆËã³öµÄ¼ÓËÙ¶ÈÔË¶¯
+         * æ­£å¸¸æ¨¡å¼ï¼šæŒ‰è®¡ç®—å‡ºçš„åŠ é€Ÿåº¦è¿åŠ¨
          *
-         * ¼ÓËÙ¶È¿ÉÄÜÊÇÕı£¨¼ÓËÙ£©¡¢¸º£¨¼õËÙ£©»ò 0£¨ÔÈËÙ£©
+         * åŠ é€Ÿåº¦å¯èƒ½æ˜¯æ­£ï¼ˆåŠ é€Ÿï¼‰ã€è´Ÿï¼ˆå‡é€Ÿï¼‰æˆ– 0ï¼ˆåŒ€é€Ÿï¼‰
          */
         CalcTrajVelocityIntegral(s_dynamic_velocity_acc);
     }
 
-    /* ==================== µÚ4²½£º¸ù¾İËÙ¶È¸üĞÂÎ»ÖÃ ==================== */
+    /* ==================== ç¬¬4æ­¥ï¼šæ ¹æ®é€Ÿåº¦æ›´æ–°ä½ç½® ==================== */
     CalcTrajPositionIntegral(s_velocity_now);
 
-    /* ==================== µÚ5²½£ºÊä³ö½á¹û ==================== */
-    g_traj_go_position = s_position_now;   // ¹æ»®ºóµÄÎ»ÖÃ
-    g_traj_go_velocity = s_velocity_now;   // ¹æ»®ºóµÄËÙ¶È
+    /* ==================== ç¬¬5æ­¥ï¼šè¾“å‡ºç»“æœ ==================== */
+    g_traj_go_position = s_position_now;   // è§„åˆ’åçš„ä½ç½®
+    g_traj_go_velocity = s_velocity_now;   // è§„åˆ’åçš„é€Ÿåº¦
 }
 

@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* 控制频率 */
+/* 鎺у埗棰戠巼 */
 #define CONTROL_FREQUENCY  20000   /* Hz */
-#define CONTROL_PERIOD_US  50      /* 微秒 */
+#define CONTROL_PERIOD_US  50      /* 寰 */
 
-/* ==================== 配置 ==================== */
+/* ==================== 閰嶇疆 ==================== */
 typedef struct {
     int32_t encoderHomeOffset;
     int32_t caliCurrent;
@@ -18,7 +18,7 @@ typedef struct {
     int32_t ratedCurrentAcc;
 } MotionPlanner_Config_t;
 
-/* 全局配置指针（需要在c文件中赋值）*/
+/* 鍏ㄥ眬閰嶇疆鎸囬拡锛堥渶瑕佸湪c鏂囦欢涓祴鍊硷級*/
 extern MotionPlanner_Config_t* g_motion_config;
 
 /* ==================== CurrentTracker ==================== */

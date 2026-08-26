@@ -4,15 +4,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* FOCµçÁ÷Ê¸Á¿¿ØÖÆ */
-/* _directionInCount: µç½Ç¶È (0-1023)
-   _current_mA: µçÁ÷Öµ (mA) */
+/* FOCç”µæµçŸ¢é‡æ§åˆ¶ */
+/* _directionInCount: ç”µè§’åº¦ (0-1023)
+   _current_mA: ç”µæµå€¼ (mA) */
 void TB67H450_SetFocCurrentVector(uint32_t _directionInCount, int32_t _current_mA);
 
-/* ĞİÃß */
+/* ä¼‘çœ  */
 void TB67H450_Sleep(void);
 
-/* É²³µ */
+/* åˆ¹è½¦ */
 void TB67H450_Brake(void);
 
 #endif

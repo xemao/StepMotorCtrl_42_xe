@@ -4,22 +4,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* ³õÊ¼»¯Ğ£×¼Æ÷ */
+/* åˆå§‹åŒ–æ ¡å‡†å™¨ */
 void EncoderCalibrator_Init(void);
 
-/* 20kHzÖĞ¶ÏÖĞµ÷ÓÃ */
+/* 20kHzä¸­æ–­ä¸­è°ƒç”¨ */
 void EncoderCalibrator_Tick20kHz(void);
 
-/* Ö÷Ñ­»·ÖĞµ÷ÓÃ */
+/* ä¸»å¾ªç¯ä¸­è°ƒç”¨ */
 void EncoderCalibrator_TickMainLoop(void);
 
-/* ´¥·¢Ğ£×¼£¨Íâ²¿µ÷ÓÃ£©*/
+/* è§¦å‘æ ¡å‡†ï¼ˆå¤–éƒ¨è°ƒç”¨ï¼‰*/
 void EncoderCalibrator_Trigger(void);
 
-/* ¼ì²éÊÇ·ñÒÑĞ£×¼ */
+/* æ£€æŸ¥æ˜¯å¦å·²æ ¡å‡† */
 bool EncoderCalibrator_IsCalibrated(void);
 
-/* »ñÈ¡Ğ£×¼ºóµÄ½Ç¶È£¨²é±í£©*/
+/* è·å–æ ¡å‡†åçš„è§’åº¦ï¼ˆæŸ¥è¡¨ï¼‰*/
 uint16_t EncoderCalibrator_GetRectifiedAngle(uint16_t raw_angle);
 
 bool EncoderCalibrator_IsTriggered(void);

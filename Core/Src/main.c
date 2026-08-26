@@ -60,11 +60,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-/* °å¿¨ÅäÖÃ±äÁ¿ */
+/* æ¿å¡é…ç½®å˜é‡ */
 BoardConfig_t boardConfig;
-/* µç»úÅäÖÃ */
+/* ç”µæœºé…ç½® */
 static Motor_Config_t motor_config;
-/* Ä¬ÈÏ½ÚµãID */
+/* é»˜è®¤èŠ‚ç‚¹ID */
 static uint16_t defaultNodeID = 1;
 /* USER CODE END PV */
 
@@ -121,18 +121,18 @@ int main(void)
     /* USER CODE BEGIN 2 */
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
-    /* 1. ³õÊ¼»¯LED */
+    /* 1. åˆå§‹åŒ–LED */
     LED_Init();
-    /* 2. ³õÊ¼»¯°´Å¥ */
+    /* 2. åˆå§‹åŒ–æŒ‰é’® */
     Button_Init();
-    /* 3. ³õÊ¼»¯±àÂëÆ÷Ğ£×¼Ä£¿é */
+    /* 3. åˆå§‹åŒ–ç¼–ç å™¨æ ¡å‡†æ¨¡å— */
     EncoderCalibrator_Init();
-    /* 4. ´Ó EEPROM ¶ÁÈ¡ÅäÖÃ */
+    /* 4. ä» EEPROM è¯»å–é…ç½® */
     EEPROM_Read(0, &boardConfig, sizeof(BoardConfig_t));
-    /* 5. ¼ì²éÅäÖÃÊÇ·ñÓĞĞ§ */
+    /* 5. æ£€æŸ¥é…ç½®æ˜¯å¦æœ‰æ•ˆ */
     if (boardConfig.configStatus != CONFIG_OK)
     {
-        /* ÅäÖÃÎŞĞ§£¬Ê¹ÓÃÄ¬ÈÏÖµ */
+        /* é…ç½®æ— æ•ˆï¼Œä½¿ç”¨é»˜è®¤å€¼ */
         boardConfig.configStatus = CONFIG_OK;
         boardConfig.canNodeId = defaultNodeID;
         boardConfig.encoderHomeOffset = 0;
@@ -151,11 +151,11 @@ int main(void)
         boardConfig.enableMotorOnBoot = false;
         boardConfig.enableStallProtect = false;
 
-        /* ±£´æµ½ EEPROM */
+        /* ä¿å­˜åˆ° EEPROM */
         EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
     }
 
-    /* 6. ÅäÖÃµç»ú²ÎÊı */
+    /* 6. é…ç½®ç”µæœºå‚æ•° */
     motor_config.motionParams.encoderHomeOffset = boardConfig.encoderHomeOffset;
     motor_config.motionParams.ratedCurrent = boardConfig.currentLimit;
     motor_config.motionParams.ratedVelocity = boardConfig.velocityLimit;
@@ -172,17 +172,17 @@ int main(void)
     motor_config.ctrlParams.pid.kd = boardConfig.pid_kd;
     motor_config.ctrlParams.stallProtectSwitch = boardConfig.enableStallProtect;
 
-    /* 7. ³õÊ¼»¯µç»ú */
+    /* 7. åˆå§‹åŒ–ç”µæœº */
     Motor_SetConfig(&motor_config);
     Motor_Init();
 
 
-    /* 8. Æô¶¯¶¨Ê±Æ÷ */
+    /* 8. å¯åŠ¨å®šæ—¶å™¨ */
     HAL_Delay(100);
     HAL_TIM_Base_Start_IT(&htim1);  // 100Hz
     HAL_TIM_Base_Start_IT(&htim4);  // 20kHz
 
-    /* 9. ¼ì²éÊÇ·ñ´¥·¢Ğ£×¼£¨Á½¸ö°´Å¥Í¬Ê±°´ÏÂ£©*/
+    /* 9. æ£€æŸ¥æ˜¯å¦è§¦å‘æ ¡å‡†ï¼ˆä¸¤ä¸ªæŒ‰é’®åŒæ—¶æŒ‰ä¸‹ï¼‰*/
     if (Button_IsPressed(1) && Button_IsPressed(2))
     {
         EncoderCalibrator_Trigger();
@@ -195,31 +195,31 @@ int main(void)
     while (1)
     {
         /* USER CODE END WHILE */
-        /* ´¦ÀíĞ£×¼¼ÆËã */
+        /* å¤„ç†æ ¡å‡†è®¡ç®— */
         EncoderCalibrator_TickMainLoop();
 
-        /* ==================== ´¦ÀíÅäÖÃ±£´æ/»Ö¸´ ==================== */
+        /* ==================== å¤„ç†é…ç½®ä¿å­˜/æ¢å¤ ==================== */
         if (boardConfig.configStatus == CONFIG_COMMIT)
         {
-            /* ±£´æÅäÖÃ */
+            /* ä¿å­˜é…ç½® */
             boardConfig.configStatus = CONFIG_OK;
 
-            /* ²Á³ı Flash ·ÖÇø */
+            /* æ“¦é™¤ Flash åˆ†åŒº */
             Stockpile_Flash_Data_Empty(&stockpile_data);
 
-            /* Ğ´ÈëÅäÖÃ */
+            /* å†™å…¥é…ç½® */
             EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
         }
         else if (boardConfig.configStatus == CONFIG_RESTORE)
         {
-            /* ±£´æÅäÖÃ²¢¸´Î» */
+            /* ä¿å­˜é…ç½®å¹¶å¤ä½ */
             EEPROM_Write(0, &boardConfig, sizeof(BoardConfig_t));
             HAL_NVIC_SystemReset();
         }
         
         
 
-    /* ÉÏÎ»»úÊı¾İ·¢ËÍ */
+    /* ä¸Šä½æœºæ•°æ®å‘é€ */
         if (tele_cnt >= 10)
         {
             tele_cnt = 0;
@@ -228,7 +228,7 @@ int main(void)
             float cur = Motor_GetCurrent();
             uint8_t mode = Motor_GetMode();
             uint8_t state = Motor_GetState();
-            printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state);//Õâ¸öº¯ÊıÌ«ºÄÊ±£¬×ª²»¿ì
+            printf("T:%.2f,%.2f,%.2f,%d,%d\r\n", pos, vel, cur, mode, state);//è¿™ä¸ªå‡½æ•°å¤ªè€—æ—¶ï¼Œè½¬ä¸å¿«
         }
         /* USER CODE BEGIN 3 */
     }
@@ -281,7 +281,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-/* HAL ¶¨Ê±Æ÷ÖÜÆÚÖĞ¶Ï»Øµ÷ */
+/* HAL å®šæ—¶å™¨å‘¨æœŸä¸­æ–­å›è°ƒ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM1)
@@ -294,19 +294,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
 }
 
-/* 100Hz ¶¨Ê±Æ÷»Øµ÷ */
+/* 100Hz å®šæ—¶å™¨å›è°ƒ */
 void Tim1Callback100Hz(void)
 {
-    /* Çå³ıÖĞ¶Ï±êÖ¾ */
+    /* æ¸…é™¤ä¸­æ–­æ ‡å¿— */
     __HAL_TIM_CLEAR_IT(&htim1, TIM_IT_UPDATE);
 
-    /* °´Å¥É¨Ãè£¨10ms Ò»´Î£©*/
+    /* æŒ‰é’®æ‰«æï¼ˆ10ms ä¸€æ¬¡ï¼‰*/
     Button_Tick();
 
-    // ´¦Àí°´Å¥ÊÂ¼ş
+    // å¤„ç†æŒ‰é’®äº‹ä»¶
     if (Button_GetClick(1))
     {
-        // ÇĞ»»ÔËĞĞ/Í£Ö¹
+        // åˆ‡æ¢è¿è¡Œ/åœæ­¢
         if (Motor_GetMode() != MODE_STOP)
         {
             Motor_SetMode(MODE_STOP);
@@ -321,7 +321,7 @@ void Tim1Callback100Hz(void)
     if (Button_GetLong(1))
     {
         Uart_SendString("HAL_NVIC_SystemReset\r\n");
-        // ¸´Î»
+        // å¤ä½
         HAL_NVIC_SystemReset();
     }
 
@@ -338,26 +338,26 @@ void Tim1Callback100Hz(void)
         Motor_SetCurrent(0);
     }
 
-    /* LED ×´Ì¬¸üĞÂ */
+    /* LED çŠ¶æ€æ›´æ–° */
     LED_Tick(10, Motor_GetState());
     
     tele_cnt++;
 }
 
-/* 20kHz ¶¨Ê±Æ÷»Øµ÷ */
+/* 20kHz å®šæ—¶å™¨å›è°ƒ */
 void Tim4Callback20kHz(void)
 {
-    /* Çå³ıÖĞ¶Ï±êÖ¾ */
+    /* æ¸…é™¤ä¸­æ–­æ ‡å¿— */
     __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
 
-    /* Ğ£×¼Ä£Ê½ vs Õı³£ÔËĞĞÄ£Ê½ */
+    /* æ ¡å‡†æ¨¡å¼ vs æ­£å¸¸è¿è¡Œæ¨¡å¼ */
     if (EncoderCalibrator_IsTriggered())
     {
-        EncoderCalibrator_Tick20kHz();   // Ğ£×¼×´Ì¬»ú
+        EncoderCalibrator_Tick20kHz();   // æ ¡å‡†çŠ¶æ€æœº
     }
     else
     {
-        Motor_Tick20kHz();                // µç»ú¿ØÖÆ
+        Motor_Tick20kHz();                // ç”µæœºæ§åˆ¶
     }
 }
 /* USER CODE END 4 */

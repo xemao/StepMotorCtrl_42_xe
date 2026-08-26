@@ -37,7 +37,7 @@ void Button_Tick(void)
     for (int i = 1; i <= BUTTON_NUM; i++) {
         bool cur = ReadPin(i);
         
-        // ¼ì²âÏÂ½µÑØ£¨°´ÏÂ£©
+        // æ£€æµ‹ä¸‹é™æ²¿ï¼ˆæŒ‰ä¸‹ï¼‰
         if (cur == true && s_last_state[i] == false) {
             s_pressed[i] = true;
             s_press_time[i] = now;
@@ -45,20 +45,20 @@ void Button_Tick(void)
             s_long_flag[i] = false;
         }
         
-        // ¼ì²âÉÏÉıÑØ£¨ÊÍ·Å£©
+        // æ£€æµ‹ä¸Šå‡æ²¿ï¼ˆé‡Šæ”¾ï¼‰
         if (cur == false && s_last_state[i] == true) {
             s_pressed[i] = false;
-            // ÊÍ·ÅÊ±ÅĞ¶ÏÊÇµ¥»÷»¹ÊÇ³¤°´
+            // é‡Šæ”¾æ—¶åˆ¤æ–­æ˜¯å•å‡»è¿˜æ˜¯é•¿æŒ‰
             if (s_long_flag[i] == false) {
                 s_click_flag[i] = true;
             }
         }
         
-        // °´×¡ÖĞ£¬¼ì²â³¤°´
+        // æŒ‰ä½ä¸­ï¼Œæ£€æµ‹é•¿æŒ‰
         if (s_pressed[i] == true) {
             if (s_long_flag[i] == false && (now - s_press_time[i]) >= LONG_PRESS_MS) {
                 s_long_flag[i] = true;
-                s_click_flag[i] = false;  // ´¥·¢ÁË³¤°´¾Í²»Ëãµ¥»÷
+                s_click_flag[i] = false;  // è§¦å‘äº†é•¿æŒ‰å°±ä¸ç®—å•å‡»
             }
         }
         

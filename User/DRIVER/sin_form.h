@@ -10,7 +10,7 @@ extern "C" {
 #define sin_pi_m2_dpix      1024
 #define sin_pi_m2_dpiybit   12
 
-/* ÕıÏÒ±íÉùÃ÷ */
+/* æ­£å¼¦è¡¨å£°æ˜ */
 extern const int16_t sin_pi_m2[1025];
 
 #ifdef __cplusplus

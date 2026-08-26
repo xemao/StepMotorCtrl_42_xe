@@ -2,49 +2,49 @@
 #include "spi.h"
 #include "main.h"
 
-/* SPI CSÒı½Å */
+/* SPI CSå¼•è„š */
 #define MT6816_CS_GPIO_Port   SPI1_CS_GPIO_Port
 #define MT6816_CS_Pin         SPI1_CS_Pin
 
-/* ÃüÁî¶¨Òå */
-#define MT6816_CMD_ANGLE      0x03  /* ¶ÁÈ¡½Ç¶È */
-#define MT6816_CMD_RAW_ANGLE  0x04  /* ¶ÁÈ¡Ô­Ê¼½Ç¶È */
+/* å‘½ä»¤å®šä¹‰ */
+#define MT6816_CMD_ANGLE      0x03  /* è¯»å–è§’åº¦ */
+#define MT6816_CMD_RAW_ANGLE  0x04  /* è¯»å–åŸå§‹è§’åº¦ */
 
-/* SPIÊı¾İ½á¹¹ */
+/* SPIæ•°æ®ç»“æ„ */
 typedef struct {
-    uint16_t raw_data;      /* SPIÔ­Ê¼16Î»Êı¾İ */
-    uint16_t raw_angle;     /* 14Î»Ô­Ê¼½Ç¶È */
-    bool no_mag_flag;       /* ÎŞ´Å³¡±êÖ¾ */
-    bool checksum_flag;     /* Ğ£Ñé±êÖ¾ */
+    uint16_t raw_data;      /* SPIåŸå§‹16ä½æ•°æ® */
+    uint16_t raw_angle;     /* 14ä½åŸå§‹è§’åº¦ */
+    bool no_mag_flag;       /* æ— ç£åœºæ ‡å¿— */
+    bool checksum_flag;     /* æ ¡éªŒæ ‡å¿— */
 } MT6816_SpiData_t;
 
-/* ¾²Ì¬±äÁ¿ */
-static uint16_t* s_quick_cali_data_ptr = NULL;  /* Ğ£×¼Êı¾İÖ¸Õë */
+/* é™æ€å˜é‡ */
+static uint16_t* s_quick_cali_data_ptr = NULL;  /* æ ¡å‡†æ•°æ®æŒ‡é’ˆ */
 static MT6816_SpiData_t s_spi_raw_data;
 static uint16_t s_data_tx[2];
 static uint16_t s_data_rx[2];
 //static uint8_t s_hcount;
-static uint16_t s_rectified_angle;  /* Ğ£×¼ºóµÄ½Ç¶È */
-static uint16_t s_raw_angle;        /* Ô­Ê¼½Ç¶È */
+static uint16_t s_rectified_angle;  /* æ ¡å‡†åçš„è§’åº¦ */
+static uint16_t s_raw_angle;        /* åŸå§‹è§’åº¦ */
 
-/* SPI´«Êä²¢¶ÁÈ¡16Î»Êı¾İ */
+/* SPIä¼ è¾“å¹¶è¯»å–16ä½æ•°æ® */
 static uint16_t MT6816_SpiTransmitAndRead16Bits(uint16_t data_tx)
 {
     uint16_t data_rx;
     
-    /* CSµÍµçÆ½Ñ¡ÖĞ */
+    /* CSä½ç”µå¹³é€‰ä¸­ */
     HAL_GPIO_WritePin(MT6816_CS_GPIO_Port, MT6816_CS_Pin, GPIO_PIN_RESET);
     
-    /* SPIÊÕ·¢ */
+    /* SPIæ”¶å‘ */
     HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&data_tx, (uint8_t*)&data_rx, 1, HAL_MAX_DELAY);
     
-    /* CS¸ßµçÆ½ÊÍ·Å */
+    /* CSé«˜ç”µå¹³é‡Šæ”¾ */
     HAL_GPIO_WritePin(MT6816_CS_GPIO_Port, MT6816_CS_Pin, GPIO_PIN_SET);
     
     return data_rx;
 }
 
-/* ÆæÅ¼Ğ£Ñé¼ÆËã */
+/* å¥‡å¶æ ¡éªŒè®¡ç®— */
 static uint8_t MT6816_CalcParity(uint16_t data)
 {
     uint8_t count = 0;
@@ -52,14 +52,14 @@ static uint8_t MT6816_CalcParity(uint16_t data)
         if (data & (0x0001 << i))
             count++;
     }
-    return count & 0x01;  /* ·µ»Ø1±íÊ¾ÆæÊı¸ö1£¬0±íÊ¾Å¼Êı¸ö1 */
+    return count & 0x01;  /* è¿”å›1è¡¨ç¤ºå¥‡æ•°ä¸ª1ï¼Œ0è¡¨ç¤ºå¶æ•°ä¸ª1 */
 }
 
 bool MT6816_Init(void)
 {
     MT6816_UpdateAngle();
     
-    /* ¼ì²éĞ£×¼Êı¾İÊÇ·ñÓĞĞ§ */
+    /* æ£€æŸ¥æ ¡å‡†æ•°æ®æ˜¯å¦æœ‰æ•ˆ */
     if (s_quick_cali_data_ptr == NULL) {
         return false;
     }
@@ -75,21 +75,21 @@ bool MT6816_Init(void)
 
 uint16_t MT6816_UpdateAngle(void)
 {
-    /* ¹¹ÔìÃüÁî£º×î¸ßÎ»Îª1±íÊ¾¶Á */
+    /* æ„é€ å‘½ä»¤ï¼šæœ€é«˜ä½ä¸º1è¡¨ç¤ºè¯» */
     s_data_tx[0] = (0x80 | MT6816_CMD_ANGLE) << 8;
     s_data_tx[1] = (0x80 | MT6816_CMD_RAW_ANGLE) << 8;
     
-    /* ³¢ÊÔ3´Î¶ÁÈ¡£¬Ö±µ½Ğ£ÑéÍ¨¹ı */
+    /* å°è¯•3æ¬¡è¯»å–ï¼Œç›´åˆ°æ ¡éªŒé€šè¿‡ */
     for (uint8_t i = 0; i < 3; i++) {
         s_data_rx[0] = MT6816_SpiTransmitAndRead16Bits(s_data_tx[0]);
         s_data_rx[1] = MT6816_SpiTransmitAndRead16Bits(s_data_tx[1]);
         
-        /* ×éºÏÊı¾İ */
+        /* ç»„åˆæ•°æ® */
         s_spi_raw_data.raw_data = ((s_data_rx[0] & 0x00FF) << 8) | (s_data_rx[1] & 0x00FF);
         
-        /* ÆæÅ¼Ğ£Ñé */
+        /* å¥‡å¶æ ¡éªŒ */
         if (MT6816_CalcParity(s_spi_raw_data.raw_data) == 0) {
-            /* Ğ£ÑéÍ¨¹ı£¨Å¼Êı¸ö1£© */
+            /* æ ¡éªŒé€šè¿‡ï¼ˆå¶æ•°ä¸ª1ï¼‰ */
             s_spi_raw_data.checksum_flag = true;
             break;
         } else {
@@ -98,14 +98,14 @@ uint16_t MT6816_UpdateAngle(void)
     }
     
     if (s_spi_raw_data.checksum_flag) {
-        /* ÌáÈ¡14Î»½Ç¶ÈÖµ£¨bit2-bit15£© */
+        /* æå–14ä½è§’åº¦å€¼ï¼ˆbit2-bit15ï¼‰ */
         s_spi_raw_data.raw_angle = s_spi_raw_data.raw_data >> 2;
-        /* ÌáÈ¡ÎŞ´Å³¡±êÖ¾£¨bit1£© */
+        /* æå–æ— ç£åœºæ ‡å¿—ï¼ˆbit1ï¼‰ */
         s_spi_raw_data.no_mag_flag = (bool)(s_spi_raw_data.raw_data & (0x0001 << 1));
         
         s_raw_angle = s_spi_raw_data.raw_angle;
         
-        /* ²é±íĞ£×¼ */
+        /* æŸ¥è¡¨æ ¡å‡† */
         if (s_quick_cali_data_ptr != NULL) {
             s_rectified_angle = s_quick_cali_data_ptr[s_raw_angle];
         } else {
@@ -150,13 +150,13 @@ uint16_t MT6816_TestRead(void)
     uint16_t data_tx = (0x80 | MT6816_CMD_ANGLE) << 8;
     uint16_t data_rx;
     
-    /* CSµÍµçÆ½Ñ¡ÖĞ */
+    /* CSä½ç”µå¹³é€‰ä¸­ */
     HAL_GPIO_WritePin(MT6816_CS_GPIO_Port, MT6816_CS_Pin, GPIO_PIN_RESET);
     
-    /* SPIÊÕ·¢ */
+    /* SPIæ”¶å‘ */
     HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&data_tx, (uint8_t*)&data_rx, 1, HAL_MAX_DELAY);
     
-    /* CS¸ßµçÆ½ÊÍ·Å */
+    /* CSé«˜ç”µå¹³é‡Šæ”¾ */
     HAL_GPIO_WritePin(MT6816_CS_GPIO_Port, MT6816_CS_Pin, GPIO_PIN_SET);
     
     return data_rx;

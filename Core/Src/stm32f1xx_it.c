@@ -342,7 +342,7 @@ void USART1_IRQHandler(void)
     {
         __HAL_UART_CLEAR_IDLEFLAG(&huart1);
 
-        /* Í£Ö¹ DMA£¬»ñÈ¡ÒÑ½ÓÊÕµÄÊı¾İ³¤¶È */
+        /* åœæ­¢ DMAï¼Œè·å–å·²æ¥æ”¶çš„æ•°æ®é•¿åº¦ */
         HAL_UART_DMAStop(&huart1);
 
         uint32_t temp = __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
@@ -355,11 +355,11 @@ void USART1_IRQHandler(void)
         memset(rx_buffer, 0, rxLen);
         rxLen = 0;
 
-        /* ÖØĞÂÆô¶¯ DMA ½ÓÊÕ */
+        /* é‡æ–°å¯åŠ¨ DMA æ¥æ”¶ */
         HAL_UART_Receive_DMA(&huart1, rx_buffer, BUFFER_SIZE);
     }
 
-//  /* ·¢ËÍÍê³ÉÖĞ¶Ï */
+//  /* å‘é€å®Œæˆä¸­æ–­ */
 //  if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TC) != RESET) {
 //          __HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_TC);
 //          s_tx_complete = true;
@@ -372,7 +372,7 @@ void USART1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-/* DMA ·¢ËÍÍê³É»Øµ÷ */
+/* DMA å‘é€å®Œæˆå›è°ƒ */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
     tx_complete  = true;

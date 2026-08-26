@@ -4,22 +4,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* ·Ö±æÂÊ£º14Î» = 16384 */
+/* åˆ†è¾¨ç‡ï¼š14ä½ = 16384 */
 #define MT6816_RESOLUTION  16384
 
-/* ¸üĞÂ½Ç¶È£¬·µ»ØĞ£×¼ºóµÄ½Ç¶ÈÖµ(0-16383) */
+/* æ›´æ–°è§’åº¦ï¼Œè¿”å›æ ¡å‡†åçš„è§’åº¦å€¼(0-16383) */
 uint16_t MT6816_UpdateAngle(void);
 
-/* »ñÈ¡Ô­Ê¼½Ç¶È(Î´Ğ£×¼) */
+/* è·å–åŸå§‹è§’åº¦(æœªæ ¡å‡†) */
 uint16_t MT6816_GetRawAngle(void);
 
-/* »ñÈ¡Ğ£×¼ºóµÄ½Ç¶È */
+/* è·å–æ ¡å‡†åçš„è§’åº¦ */
 uint16_t MT6816_GetRectifiedAngle(void);
 
-/* ¼ì²éÊÇ·ñÒÑĞ£×¼ */
+/* æ£€æŸ¥æ˜¯å¦å·²æ ¡å‡† */
 bool MT6816_IsCalibrated(void);
 
-/* ÉèÖÃĞ£×¼Êı¾İÖ¸Õë£¨ÔÚInitÖ®Ç°µ÷ÓÃ£© */
+/* è®¾ç½®æ ¡å‡†æ•°æ®æŒ‡é’ˆï¼ˆåœ¨Initä¹‹å‰è°ƒç”¨ï¼‰ */
 void MT6816_SetCalibrationData(uint16_t* cali_data_ptr);
 
 uint16_t MT6816_TestRead(void);

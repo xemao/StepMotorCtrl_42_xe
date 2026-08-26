@@ -1,12 +1,12 @@
 #include "eeprom.h"
 #include "stockpile_f103cb.h"
-#include <string.h>
+//#include <string.h>
 
-/* EEPROM´æ´¢µØÖ·£¨Ê¹ÓÃstockpile_data·ÖÇø£© */
+/* EEPROMå­˜å‚¨åœ°å€ï¼ˆä½¿ç”¨stockpile_dataåˆ†åŒºï¼‰ */
 #define EEPROM_BASE_ADDR    STOCKPILE_APP_DATA_ADDR
 #define EEPROM_MAX_SIZE     1024  /* 1KB */
 
-/* ±ê¼Ç·ÖÇøÊÇ·ñÒÑ²Á³ı */
+/* æ ‡è®°åˆ†åŒºæ˜¯å¦å·²æ“¦é™¤ */
 static bool s_is_erased = false;
 
 void EEPROM_Read(uint32_t addr, void* data, uint32_t size)
@@ -25,23 +25,23 @@ void EEPROM_Write(uint32_t addr, void* data, uint32_t size)
 {
     if (addr + size > EEPROM_MAX_SIZE) return;
     
-    /* µÚÒ»´ÎĞ´ÈëÊ±£¬ÏÈ²Á³ıÕû¸ö·ÖÇø */
+    /* ç¬¬ä¸€æ¬¡å†™å…¥æ—¶ï¼Œå…ˆæ“¦é™¤æ•´ä¸ªåˆ†åŒº */
     if (!s_is_erased) {
         Stockpile_Flash_Data_Empty(&stockpile_data);
         s_is_erased = true;
     }
     
-    /* ¿ªÊ¼Ğ´Èë */
+    /* å¼€å§‹å†™å…¥ */
     Stockpile_Flash_Data_Begin(&stockpile_data);
     
-    /* ÉèÖÃĞ´µØÖ· */
+    /* è®¾ç½®å†™åœ°å€ */
     Stockpile_Flash_Data_Set_Write_Add(&stockpile_data, EEPROM_BASE_ADDR + addr);
     
-    /* Ğ´ÈëÊı¾İ£¨16Î»¶ÔÆë£© */
+    /* å†™å…¥æ•°æ®ï¼ˆ16ä½å¯¹é½ï¼‰ */
     uint32_t halfword_count = (size + 1) / 2;
     Stockpile_Flash_Data_Write_Data16(&stockpile_data, (uint16_t*)data, halfword_count);
     
-    /* ½áÊøĞ´Èë */
+    /* ç»“æŸå†™å…¥ */
     Stockpile_Flash_Data_End(&stockpile_data);
 }
 
@@ -49,11 +49,11 @@ bool EEPROM_IsValid(void)
 {
     uint32_t* pFirst = (uint32_t*)EEPROM_BASE_ADDR;
     
-    /* ¼ì²éµÚÒ»¸ö×ÖÊÇ·ñÈ«0xFF£¨¿ÕFlash£© */
+    /* æ£€æŸ¥ç¬¬ä¸€ä¸ªå­—æ˜¯å¦å…¨0xFFï¼ˆç©ºFlashï¼‰ */
     return (*pFirst != 0xFFFFFFFF);
 }
 
-/* ¿ÉÑ¡£ºÊÖ¶¯²Á³ıÕûÆ¬ EEPROM ÇøÓò */
+/* å¯é€‰ï¼šæ‰‹åŠ¨æ“¦é™¤æ•´ç‰‡ EEPROM åŒºåŸŸ */
 void EEPROM_Erase(void)
 {
     Stockpile_Flash_Data_Empty(&stockpile_data);

@@ -5,10 +5,10 @@
 #include <stdbool.h>
 
 void Button_Init(void);
-void Button_Tick(void);           // Ã¿ 10ms µ÷ÓÃÒ»´Î
-bool Button_GetClick(uint8_t id);   // »ñÈ¡µ¥»÷£¬¶Áºó×Ô¶¯Çå³ı
-bool Button_GetLong(uint8_t id);    // »ñÈ¡³¤°´£¬¶Áºó×Ô¶¯Çå³ı
-bool Button_IsPressed(uint8_t id);  // µ±Ç°ÊÇ·ñ°´ÏÂ
+void Button_Tick(void);           // æ¯ 10ms è°ƒç”¨ä¸€æ¬¡
+bool Button_GetClick(uint8_t id);   // è·å–å•å‡»ï¼Œè¯»åè‡ªåŠ¨æ¸…é™¤
+bool Button_GetLong(uint8_t id);    // è·å–é•¿æŒ‰ï¼Œè¯»åè‡ªåŠ¨æ¸…é™¤
+bool Button_IsPressed(uint8_t id);  // å½“å‰æ˜¯å¦æŒ‰ä¸‹
 
 #endif
 

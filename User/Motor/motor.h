@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include "motion_planner.h"
 
-/* µç»ú³£Á¿ */
+/* ç”µæœºå¸¸é‡ */
 #define MOTOR_HARD_STEPS          200
 #define SOFT_DIVIDE_NUM           256
 #define MOTOR_SUBDIVIDE_STEPS     (MOTOR_HARD_STEPS * SOFT_DIVIDE_NUM)  /* 51200 */
 
-/* µç»úÄ£Ê½ */
+/* ç”µæœºæ¨¡å¼ */
 typedef enum {
     MODE_STOP,
     MODE_COMMAND_POSITION,
@@ -23,7 +23,7 @@ typedef enum {
     MODE_STEP_DIR
 } Motor_Mode_t;
 
-/* µç»ú×´Ì¬ */
+/* ç”µæœºçŠ¶æ€ */
 typedef enum {
     STATE_STOP,
     STATE_FINISH,
@@ -33,7 +33,7 @@ typedef enum {
     STATE_NO_CALIB
 } Motor_State_t;
 
-/* PID ½á¹¹Ìå */
+/* PID ç»“æ„ä½“ */
 typedef struct {
     int32_t kp, ki, kd;
     int32_t vError, vErrorLast;
@@ -43,7 +43,7 @@ typedef struct {
     int32_t output;
 } PID_t;
 
-/* DCE ½á¹¹Ìå */
+/* DCE ç»“æ„ä½“ */
 typedef struct {
     int32_t kp, kv, ki, kd;
     int32_t pError, vError;
@@ -53,29 +53,29 @@ typedef struct {
     int32_t output;
 } DCE_t;
 
-/* ¿ØÖÆÆ÷ÅäÖÃ */
+/* æ§åˆ¶å™¨é…ç½® */
 typedef struct {
     PID_t pid;
     DCE_t dce;
     bool stallProtectSwitch;
 } Controller_Config_t;
 
-/* µç»úÅäÖÃ */
+/* ç”µæœºé…ç½® */
 typedef struct {
     MotionPlanner_Config_t motionParams;
     Controller_Config_t ctrlParams;
 } Motor_Config_t;
 
-/* ³õÊ¼»¯µç»úÏµÍ³ */
+/* åˆå§‹åŒ–ç”µæœºç³»ç»Ÿ */
 void Motor_Init(void);
 
-/* ÉèÖÃÅäÖÃÖ¸Õë */
+/* è®¾ç½®é…ç½®æŒ‡é’ˆ */
 void Motor_SetConfig(Motor_Config_t* config);
 
-/* 20kHz ÖĞ¶ÏÖĞµ÷ÓÃ */
+/* 20kHz ä¸­æ–­ä¸­è°ƒç”¨ */
 void Motor_Tick20kHz(void);
 
-/* ¿ØÖÆ½Ó¿Ú */
+/* æ§åˆ¶æ¥å£ */
 void Motor_SetMode(Motor_Mode_t mode);
 void Motor_SetPosition(int32_t pos);
 void Motor_SetVelocity(int32_t vel);
@@ -84,7 +84,7 @@ void Motor_SetDisable(bool disable);
 void Motor_SetBrake(bool brake);
 void Motor_ClearStallFlag(void);
 
-/* ×´Ì¬¶ÁÈ¡ */
+/* çŠ¶æ€è¯»å– */
 Motor_State_t Motor_GetState(void);
 float Motor_GetPosition(bool isLap);
 float Motor_GetVelocity(void);
@@ -92,7 +92,7 @@ float Motor_GetCurrent(void);
 bool Motor_IsCalibrated(void);
 uint8_t Motor_GetMode(void);
 
-/* ±àÂëÆ÷Ğ£×¼½Ó¿Ú */
+/* ç¼–ç å™¨æ ¡å‡†æ¥å£ */
 bool Motor_IsCalibrated(void);
 void Motor_TriggerCalibration(void);
 

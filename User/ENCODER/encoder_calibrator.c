@@ -5,40 +5,40 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* ==================== ³£Á¿¶¨Òå ==================== */
-#define HARD_STEPS          200     /* ²½½øµç»úÒ»È¦200²½£¨1.8¡ã²½¾à½Ç£©*/
-#define SAMPLE_PER_STEP     16      /* Ã¿¸ö»úĞµÎ»ÖÃ²ÉÑù16´ÎÈ¡Æ½¾ù */
-#define AUTO_SPEED          2       /* ×Ô¶¯Ğ£×¼Ê±µÄÒÆ¶¯ËÙ¶È */
-#define FINE_SPEED          1       /* ¾«µ÷Ê±µÄÒÆ¶¯ËÙ¶È */
-#define ENC_RESOLUTION      16384   /* ±àÂëÆ÷14Î»·Ö±æÂÊ£¨2^14=16384£©*/
-#define SOFT_DIVIDE         256       /* ÈíÏ¸·ÖÊı£¬½«1²½ÔÙÏ¸·Ö³É256¸öÎ¢²½ */
-#define SUBDIVIDE_STEPS     51200     /* Ò»È¦Ï¸·Ö²½Êı = HARD_STEPS * SOFT_DIVIDE = 51200 */
+/* ==================== å¸¸é‡å®šä¹‰ ==================== */
+#define HARD_STEPS          200     /* æ­¥è¿›ç”µæœºä¸€åœˆ200æ­¥ï¼ˆ1.8Â°æ­¥è·è§’ï¼‰*/
+#define SAMPLE_PER_STEP     16      /* æ¯ä¸ªæœºæ¢°ä½ç½®é‡‡æ ·16æ¬¡å–å¹³å‡ */
+#define AUTO_SPEED          2       /* è‡ªåŠ¨æ ¡å‡†æ—¶çš„ç§»åŠ¨é€Ÿåº¦ */
+#define FINE_SPEED          1       /* ç²¾è°ƒæ—¶çš„ç§»åŠ¨é€Ÿåº¦ */
+#define ENC_RESOLUTION      16384   /* ç¼–ç å™¨14ä½åˆ†è¾¨ç‡ï¼ˆ2^14=16384ï¼‰*/
+#define SOFT_DIVIDE         256       /* è½¯ç»†åˆ†æ•°ï¼Œå°†1æ­¥å†ç»†åˆ†æˆ256ä¸ªå¾®æ­¥ */
+#define SUBDIVIDE_STEPS     51200     /* ä¸€åœˆç»†åˆ†æ­¥æ•° = HARD_STEPS * SOFT_DIVIDE = 51200 */
 
-/* ==================== È«¾Ö±äÁ¿ ==================== */
-static bool cali_triggered = false;      /* Ğ£×¼´¥·¢±êÖ¾ */
-static bool cali_is_calibrated = false;  /* ÊÇ·ñÒÑĞ£×¼Íê³É */
-static int cali_error = 0;               /* ´íÎóÂë£º0=ÎŞ´íÎó£¬1=·½Ïò´íÎó£¬2=Êı¾İ²»Á¬Ğø£¬3=ÏàÎ»´íÎó£¬4=ÊıÁ¿´íÎó */
-static int cali_state = 0;               /* ×´Ì¬»ú×´Ì¬£º0¿ÕÏĞ,1ÕıÏò×¼±¸,2ÕıÏò²âÁ¿,3·´Ïò·µ»Ø,4Ïû³ı¼äÏ¶,5·´Ïò²âÁ¿,6¼ÆËã */
+/* ==================== å…¨å±€å˜é‡ ==================== */
+static bool cali_triggered = false;      /* æ ¡å‡†è§¦å‘æ ‡å¿— */
+static bool cali_is_calibrated = false;  /* æ˜¯å¦å·²æ ¡å‡†å®Œæˆ */
+static int cali_error = 0;               /* é”™è¯¯ç ï¼š0=æ— é”™è¯¯ï¼Œ1=æ–¹å‘é”™è¯¯ï¼Œ2=æ•°æ®ä¸è¿ç»­ï¼Œ3=ç›¸ä½é”™è¯¯ï¼Œ4=æ•°é‡é”™è¯¯ */
+static int cali_state = 0;               /* çŠ¶æ€æœºçŠ¶æ€ï¼š0ç©ºé—²,1æ­£å‘å‡†å¤‡,2æ­£å‘æµ‹é‡,3åå‘è¿”å›,4æ¶ˆé™¤é—´éš™,5åå‘æµ‹é‡,6è®¡ç®— */
 
-static uint32_t go_pos = 0;              /* µ±Ç°Ä¿±êÎ»ÖÃ£¨Ï¸·Ö²½Êı£¬0-400£©*/
-static bool go_dir = true;               /* Ğı×ª·½Ïò£ºtrue=Õı×ª£¬false=·´×ª */
-static uint16_t sample_cnt = 0;          /* µ±Ç°ÒÑ²ÉÑù´ÎÊı¼ÆÊı */
-static uint16_t sample_raw[SAMPLE_PER_STEP];     /* Ô­Ê¼²ÉÑùÊı¾İ»º³åÇø */
-static uint16_t sample_fwd[HARD_STEPS + 1];      /* ÕıÏò²âÁ¿Êı¾İ£¨Ã¿¸ö»úĞµ²½Î»ÖÃµÄÆ½¾ù½Ç¶È£©*/
-static uint16_t sample_rev[HARD_STEPS + 1];      /* ·´Ïò²âÁ¿Êı¾İ£¨Ã¿¸ö»úĞµ²½Î»ÖÃµÄÆ½¾ù½Ç¶È£©*/
-static int32_t rcd_x = 0, rcd_y = 0;     /* ¼ÇÂ¼½Ç¶ÈÌøÔ¾µãµÄÎ»ÖÃ */
-static uint32_t result_num = 0;          /* Éú³ÉµÄĞ£×¼±íµãÊı¼ÆÊı */
+static uint32_t go_pos = 0;              /* å½“å‰ç›®æ ‡ä½ç½®ï¼ˆç»†åˆ†æ­¥æ•°ï¼Œ0-400ï¼‰*/
+static bool go_dir = true;               /* æ—‹è½¬æ–¹å‘ï¼štrue=æ­£è½¬ï¼Œfalse=åè½¬ */
+static uint16_t sample_cnt = 0;          /* å½“å‰å·²é‡‡æ ·æ¬¡æ•°è®¡æ•° */
+static uint16_t sample_raw[SAMPLE_PER_STEP];     /* åŸå§‹é‡‡æ ·æ•°æ®ç¼“å†²åŒº */
+static uint16_t sample_fwd[HARD_STEPS + 1];      /* æ­£å‘æµ‹é‡æ•°æ®ï¼ˆæ¯ä¸ªæœºæ¢°æ­¥ä½ç½®çš„å¹³å‡è§’åº¦ï¼‰*/
+static uint16_t sample_rev[HARD_STEPS + 1];      /* åå‘æµ‹é‡æ•°æ®ï¼ˆæ¯ä¸ªæœºæ¢°æ­¥ä½ç½®çš„å¹³å‡è§’åº¦ï¼‰*/
+static int32_t rcd_x = 0, rcd_y = 0;     /* è®°å½•è§’åº¦è·³è·ƒç‚¹çš„ä½ç½® */
+static uint32_t result_num = 0;          /* ç”Ÿæˆçš„æ ¡å‡†è¡¨ç‚¹æ•°è®¡æ•° */
 
-/* Ğ£×¼±íÖ¸Õë£¨Ö¸ÏòFlashÖĞ´æ´¢Ğ£×¼Êı¾İµÄµØÖ·£©*/
+/* æ ¡å‡†è¡¨æŒ‡é’ˆï¼ˆæŒ‡å‘Flashä¸­å­˜å‚¨æ ¡å‡†æ•°æ®çš„åœ°å€ï¼‰*/
 static uint16_t* cali_table = (uint16_t*)STOCKPILE_APP_CALI_ADDR;
 
-/* ==================== ¸¨Öúº¯Êı ==================== */
+/* ==================== è¾…åŠ©å‡½æ•° ==================== */
 
 /**
- * @brief Ñ­»·È¡Ä£ÔËËã
- * @param a ±»³ıÊı
- * @param b ³ıÊı
- * @return (a + b) % b£¬È·±£½á¹ûÔÚ[0, b)·¶Î§ÄÚ
+ * @brief å¾ªç¯å–æ¨¡è¿ç®—
+ * @param a è¢«é™¤æ•°
+ * @param b é™¤æ•°
+ * @return (a + b) % bï¼Œç¡®ä¿ç»“æœåœ¨[0, b)èŒƒå›´å†…
  */
 static uint32_t CycleMod(uint32_t a, uint32_t b)
 {
@@ -46,28 +46,28 @@ static uint32_t CycleMod(uint32_t a, uint32_t b)
 }
 
 /**
- * @brief Ñ­»·¼õ·¨£¨´¦Àí½Ç¶È»·ÈÆ£©
- * @param a ½Ç¶ÈA
- * @param b ½Ç¶ÈB
- * @param cyc Ò»È¦µÄ×Ü¿Ì¶ÈÊı£¨Èç16384£©
- * @return aºÍbµÄ×î¶Ì²îÖµ£¬·¶Î§(-cyc/2, cyc/2]
- * @example ½Ç¶È10¡ãºÍ350¡ã£¬²îÖµÎª20¡ã¶ø²»ÊÇ-340¡ã
+ * @brief å¾ªç¯å‡æ³•ï¼ˆå¤„ç†è§’åº¦ç¯ç»•ï¼‰
+ * @param a è§’åº¦A
+ * @param b è§’åº¦B
+ * @param cyc ä¸€åœˆçš„æ€»åˆ»åº¦æ•°ï¼ˆå¦‚16384ï¼‰
+ * @return aå’Œbçš„æœ€çŸ­å·®å€¼ï¼ŒèŒƒå›´(-cyc/2, cyc/2]
+ * @example è§’åº¦10Â°å’Œ350Â°ï¼Œå·®å€¼ä¸º20Â°è€Œä¸æ˜¯-340Â°
  */
 static int32_t CycleSub(int32_t a, int32_t b, int32_t cyc)
 {
     int32_t sub = a - b;
-    if (sub > (cyc >> 1)) sub -= cyc;      /* ³¬¹ı°ëÈ¦£¬¼õÒ»È¦ */
-    if (sub < (-(cyc >> 1))) sub += cyc;   /* µÍÓÚ¸º°ëÈ¦£¬¼ÓÒ»È¦ */
+    if (sub > (cyc >> 1)) sub -= cyc;      /* è¶…è¿‡åŠåœˆï¼Œå‡ä¸€åœˆ */
+    if (sub < (-(cyc >> 1))) sub += cyc;   /* ä½äºè´ŸåŠåœˆï¼ŒåŠ ä¸€åœˆ */
     return sub;
 }
 
 /**
- * @brief Ñ­»·Æ½¾ù£¨´¦Àí½Ç¶È»·ÈÆ£©
- * @param a ½Ç¶ÈA
- * @param b ½Ç¶ÈB
- * @param cyc Ò»È¦µÄ×Ü¿Ì¶ÈÊı
- * @return Á½¸ö½Ç¶ÈµÄÆ½¾ùÖµ£¬ÕıÈ·´¦Àí0¡ã¸½½üµÄ»·ÈÆ
- * @example 10¡ãºÍ350¡ãµÄÆ½¾ùÖµÊÇ0¡ã¶ø²»ÊÇ180¡ã
+ * @brief å¾ªç¯å¹³å‡ï¼ˆå¤„ç†è§’åº¦ç¯ç»•ï¼‰
+ * @param a è§’åº¦A
+ * @param b è§’åº¦B
+ * @param cyc ä¸€åœˆçš„æ€»åˆ»åº¦æ•°
+ * @return ä¸¤ä¸ªè§’åº¦çš„å¹³å‡å€¼ï¼Œæ­£ç¡®å¤„ç†0Â°é™„è¿‘çš„ç¯ç»•
+ * @example 10Â°å’Œ350Â°çš„å¹³å‡å€¼æ˜¯0Â°è€Œä¸æ˜¯180Â°
  */
 static int32_t CycleAvg(int32_t a, int32_t b, int32_t cyc)
 {
@@ -83,11 +83,11 @@ static int32_t CycleAvg(int32_t a, int32_t b, int32_t cyc)
 }
 
 /**
- * @brief ¶àÊı¾İÑ­»·Æ½¾ù
- * @param data Êı¾İÊı×é
- * @param len Êı×é³¤¶È
- * @param cyc Ò»È¦µÄ×Ü¿Ì¶ÈÊı
- * @return ËùÓĞÊı¾İµÄÆ½¾ùÖµ£¬ÕıÈ·´¦Àí½Ç¶È»·ÈÆ
+ * @brief å¤šæ•°æ®å¾ªç¯å¹³å‡
+ * @param data æ•°æ®æ•°ç»„
+ * @param len æ•°ç»„é•¿åº¦
+ * @param cyc ä¸€åœˆçš„æ€»åˆ»åº¦æ•°
+ * @return æ‰€æœ‰æ•°æ®çš„å¹³å‡å€¼ï¼Œæ­£ç¡®å¤„ç†è§’åº¦ç¯ç»•
  */
 static int32_t CycleDataAvg(const uint16_t* data, uint16_t len, int32_t cyc)
 {
@@ -95,27 +95,27 @@ static int32_t CycleDataAvg(const uint16_t* data, uint16_t len, int32_t cyc)
     for (uint16_t i = 1; i < len; i++) {
         int32_t diff = data[i];
         int32_t sub = data[i] - data[0];
-        /* ÒÔµÚÒ»¸öÊı¾İÎª»ù×¼£¬´¦ÀíÆäËûÊı¾İµÄ»·ÈÆ */
+        /* ä»¥ç¬¬ä¸€ä¸ªæ•°æ®ä¸ºåŸºå‡†ï¼Œå¤„ç†å…¶ä»–æ•°æ®çš„ç¯ç»• */
         if (sub > (cyc >> 1)) diff = data[i] - cyc;
         if (sub < (-(cyc >> 1))) diff = data[i] + cyc;
         sum += diff;
     }
     sum = sum / len;
-    /* ½«½á¹û¹éÒ»»¯µ½[0, cyc)·¶Î§ */
+    /* å°†ç»“æœå½’ä¸€åŒ–åˆ°[0, cyc)èŒƒå›´ */
     if (sum < 0) sum += cyc;
     if (sum > cyc) sum -= cyc;
     return sum;
 }
 
-/* ==================== Êı¾İ¼ì²é ==================== */
+/* ==================== æ•°æ®æ£€æŸ¥ ==================== */
 
 /**
- * @brief ¼ì²éĞ£×¼Êı¾İµÄÓĞĞ§ĞÔ
- * @details ¼ì²éÄÚÈİ£º
- *          1. Êı¾İÊÇ·ñµ¥µ÷µİÔö/µİ¼õ£¨·½Ïò¼ì²é£©
- *          2. ÏàÁÚµã²îÖµÊÇ·ñÔÚºÏÀí·¶Î§ÄÚ£¨Á¬ĞøĞÔ¼ì²é£©
- *          3. Ò»È¦ÖĞÊÇ·ñÖ»ÓĞÒ»¸öÏàÎ»ÌøÔ¾µã
- * @note Èç¹û¼ì²éÊ§°Ü£¬»áÉèÖÃcali_error´íÎóÂë
+ * @brief æ£€æŸ¥æ ¡å‡†æ•°æ®çš„æœ‰æ•ˆæ€§
+ * @details æ£€æŸ¥å†…å®¹ï¼š
+ *          1. æ•°æ®æ˜¯å¦å•è°ƒé€’å¢/é€’å‡ï¼ˆæ–¹å‘æ£€æŸ¥ï¼‰
+ *          2. ç›¸é‚»ç‚¹å·®å€¼æ˜¯å¦åœ¨åˆç†èŒƒå›´å†…ï¼ˆè¿ç»­æ€§æ£€æŸ¥ï¼‰
+ *          3. ä¸€åœˆä¸­æ˜¯å¦åªæœ‰ä¸€ä¸ªç›¸ä½è·³è·ƒç‚¹
+ * @note å¦‚æœæ£€æŸ¥å¤±è´¥ï¼Œä¼šè®¾ç½®cali_erroré”™è¯¯ç 
  */
 static void CheckData(void)
 {
@@ -123,12 +123,12 @@ static void CheckData(void)
     int32_t step_res = ENC_RESOLUTION / HARD_STEPS;
     uint32_t step_num = 0;
     
-    /* 1. ÕıÏòºÍ·´ÏòÊı¾İÆ½¾ù */
+    /* 1. æ­£å‘å’Œåå‘æ•°æ®å¹³å‡ */
     for (int i = 0; i < HARD_STEPS + 1; i++) {
         sample_fwd[i] = CycleAvg(sample_fwd[i], sample_rev[i], ENC_RESOLUTION);
     }
     
-    /* 2. ¼ì²é·½Ïò */
+    /* 2. æ£€æŸ¥æ–¹å‘ */
     sub = CycleSub(sample_fwd[0], sample_fwd[HARD_STEPS - 1], ENC_RESOLUTION);
     if (sub == 0) {
         cali_error = 1;
@@ -137,7 +137,7 @@ static void CheckData(void)
     }
     go_dir = (sub > 0);
     
-    /* 3. ¼ì²éÁ¬ĞøĞÔ */
+    /* 3. æ£€æŸ¥è¿ç»­æ€§ */
     for (int i = 1; i < HARD_STEPS; i++) {
         sub = CycleSub(sample_fwd[i], sample_fwd[i-1], ENC_RESOLUTION);
         if (abs(sub) > (step_res * 3 / 2)) {
@@ -162,7 +162,7 @@ static void CheckData(void)
         }
     }
     
-    /* 4. ÕÒÌøÔ¾µã£ºÖ±½ÓÓÃÔ­Ê¼ÖµÅĞ¶Ï¹ıÁã */
+    /* 4. æ‰¾è·³è·ƒç‚¹ï¼šç›´æ¥ç”¨åŸå§‹å€¼åˆ¤æ–­è¿‡é›¶ */
     for (int i = 0; i < HARD_STEPS; i++) {
         int32_t curr = sample_fwd[i];
         int32_t next = sample_fwd[i + 1];
@@ -175,10 +175,10 @@ static void CheckData(void)
     
     if (step_num != 1) {
         cali_error = 3;
-        printf("Error: Phase step, num=%lu\r\n", step_num);
+        printf("Error: Phase step, num=%u\r\n", step_num);
     } else {
         cali_error = 0;
-        printf("CheckData PASS, rcd_x=%ld, rcd_y=%ld\r\n", rcd_x, rcd_y);
+        printf("CheckData PASS, rcd_x=%d, rcd_y=%d\r\n", rcd_x, rcd_y);
     }
 }
 //static void CheckData(void)
@@ -187,12 +187,12 @@ static void CheckData(void)
 //    int32_t step_res = ENC_RESOLUTION / HARD_STEPS;
 //    char buf[128];
 //    
-//    // 1. Æ½¾ù
+//    // 1. å¹³å‡
 //    for (int i = 0; i < HARD_STEPS + 1; i++) {
 //        sample_fwd[i] = CycleAvg(sample_fwd[i], sample_rev[i], ENC_RESOLUTION);
 //    }
 //    
-//    // 2. ·½Ïò¼ì²é
+//    // 2. æ–¹å‘æ£€æŸ¥
 //    sub = CycleSub(sample_fwd[0], sample_fwd[HARD_STEPS - 1], ENC_RESOLUTION);
 //    if (sub == 0) {
 //        cali_error = 1;
@@ -201,7 +201,7 @@ static void CheckData(void)
 //    }
 //    go_dir = (sub > 0);
 //    
-//    // 3. Á¬ĞøĞÔ¼ì²é
+//    // 3. è¿ç»­æ€§æ£€æŸ¥
 //    for (int i = 1; i < HARD_STEPS; i++) {
 //        sub = CycleSub(sample_fwd[i], sample_fwd[i-1], ENC_RESOLUTION);
 //        if (abs(sub) > (step_res * 3 / 2)) {
@@ -231,7 +231,7 @@ static void CheckData(void)
 //        }
 //    }
 //    
-//    // 4. ÌøÔ¾µã¼ì²â£¨¿íËÉ°æ£©
+//    // 4. è·³è·ƒç‚¹æ£€æµ‹ï¼ˆå®½æ¾ç‰ˆï¼‰
 //    uint32_t step_num = 0;
 //    for (int i = 0; i < HARD_STEPS; i++) {
 //        int32_t curr = sample_fwd[i];
@@ -244,7 +244,7 @@ static void CheckData(void)
 //    }
 //    
 //    if (step_num == 0) {
-//        // Èç¹ûÃ»ÕÒµ½ÌøÔ¾µã£¬Ç¿ÖÆÉèÒ»¸ö
+//        // å¦‚æœæ²¡æ‰¾åˆ°è·³è·ƒç‚¹ï¼Œå¼ºåˆ¶è®¾ä¸€ä¸ª
 //        step_num = 1;
 //        rcd_x = 100;
 //        rcd_y = 0;
@@ -258,13 +258,13 @@ static void CheckData(void)
 //    cali_error = 0;
 //    Uart_SendString("CheckData PASS\r\n");
 //}
-/* ==================== Éú³ÉĞ£×¼±í ==================== */
+/* ==================== ç”Ÿæˆæ ¡å‡†è¡¨ ==================== */
 
 /**
- * @brief Éú³ÉĞ£×¼Ó³Éä±í²¢Ğ´ÈëFlash
- * @details ¸ù¾İ²É¼¯µÄÊı¾İ£¬Í¨¹ıÏßĞÔ²åÖµÉú³É16384¸öµãµÄĞ£×¼±í
- *          Ğ£×¼±í¹¦ÄÜ£ºÔ­Ê¼½Ç¶È ¡ú Ğ£×¼ºó½Ç¶È
- * @note Ğ£×¼³É¹¦ºó»á×Ô¶¯ÉèÖÃcali_is_calibrated±êÖ¾
+ * @brief ç”Ÿæˆæ ¡å‡†æ˜ å°„è¡¨å¹¶å†™å…¥Flash
+ * @details æ ¹æ®é‡‡é›†çš„æ•°æ®ï¼Œé€šè¿‡çº¿æ€§æ’å€¼ç”Ÿæˆ16384ä¸ªç‚¹çš„æ ¡å‡†è¡¨
+ *          æ ¡å‡†è¡¨åŠŸèƒ½ï¼šåŸå§‹è§’åº¦ â†’ æ ¡å‡†åè§’åº¦
+ * @note æ ¡å‡†æˆåŠŸåä¼šè‡ªåŠ¨è®¾ç½®cali_is_calibratedæ ‡å¿—
  */
 static void GenerateTable(void)
 {
@@ -273,22 +273,22 @@ static void GenerateTable(void)
     
     result_num = 0;
     
-    /* ²Á³ı²¢¿ªÊ¼Ğ´ÈëFlash */
+    /* æ“¦é™¤å¹¶å¼€å§‹å†™å…¥Flash */
     Stockpile_Flash_Data_Empty(&stockpile_quick_cali);
     Stockpile_Flash_Data_Begin(&stockpile_quick_cali);
     
     if (go_dir) {
-        /* Õı×ª·½Ïò£ºÏßĞÔ²åÖµÉú³ÉĞ£×¼±í */
+        /* æ­£è½¬æ–¹å‘ï¼šçº¿æ€§æ’å€¼ç”Ÿæˆæ ¡å‡†è¡¨ */
         for (int x = rcd_x; x < rcd_x + HARD_STEPS + 1; x++) {
-            /* ¼ÆËãÏàÁÚÁ½¸ö²ÉÑùµãÖ®¼äµÄ½Ç¶È²î */
+            /* è®¡ç®—ç›¸é‚»ä¸¤ä¸ªé‡‡æ ·ç‚¹ä¹‹é—´çš„è§’åº¦å·® */
             data = CycleSub(sample_fwd[CycleMod(x+1, HARD_STEPS)], 
                             sample_fwd[CycleMod(x, HARD_STEPS)], ENC_RESOLUTION);
             
-            /* È·¶¨²åÖµ·¶Î§ */
+            /* ç¡®å®šæ’å€¼èŒƒå›´ */
             int start_y = (x == rcd_x) ? rcd_y : 0;
             int end_y = (x == rcd_x + HARD_STEPS) ? rcd_y : data;
             
-            /* ÔÚÁ½µãÖ®¼äÏßĞÔ²åÖµ */
+            /* åœ¨ä¸¤ç‚¹ä¹‹é—´çº¿æ€§æ’å€¼ */
             for (int y = start_y; y < end_y; y++) {
                 val = CycleMod(SOFT_DIVIDE * x + SOFT_DIVIDE * y / data, SUBDIVIDE_STEPS);
                 Stockpile_Flash_Data_Write_Data16(&stockpile_quick_cali, &val, 1);
@@ -296,7 +296,7 @@ static void GenerateTable(void)
             }
         }
     } else {
-        /* ·´×ª·½Ïò£ºÏßĞÔ²åÖµÉú³ÉĞ£×¼±í */
+        /* åè½¬æ–¹å‘ï¼šçº¿æ€§æ’å€¼ç”Ÿæˆæ ¡å‡†è¡¨ */
         for (int x = rcd_x + HARD_STEPS; x > rcd_x - 1; x--) {
             data = CycleSub(sample_fwd[CycleMod(x, HARD_STEPS)], 
                             sample_fwd[CycleMod(x+1, HARD_STEPS)], ENC_RESOLUTION);
@@ -313,22 +313,22 @@ static void GenerateTable(void)
     }
     
     Stockpile_Flash_Data_End(&stockpile_quick_cali);
-		printf("GenerateTable done, result_num=%lu, cali_table[0]=%u\r\n", result_num, cali_table[0]);
+		printf("GenerateTable done, result_num=%u, cali_table[0]=%u\r\n", result_num, cali_table[0]);
     
-    /* ¼ì²éÉú³ÉµÄµãÊıÊÇ·ñÕıÈ· */
+    /* æ£€æŸ¥ç”Ÿæˆçš„ç‚¹æ•°æ˜¯å¦æ­£ç¡® */
     if (result_num == ENC_RESOLUTION) cali_is_calibrated = true;
     else cali_error = 4;
 }
 
-/* ==================== ¹«¹²º¯Êı ==================== */
+/* ==================== å…¬å…±å‡½æ•° ==================== */
 
 /**
- * @brief ³õÊ¼»¯±àÂëÆ÷Ğ£×¼Ä£¿é
- * @details ¼ì²éFlashÖĞÊÇ·ñÒÑÓĞÓĞĞ§µÄĞ£×¼Êı¾İ
+ * @brief åˆå§‹åŒ–ç¼–ç å™¨æ ¡å‡†æ¨¡å—
+ * @details æ£€æŸ¥Flashä¸­æ˜¯å¦å·²æœ‰æœ‰æ•ˆçš„æ ¡å‡†æ•°æ®
  */
 void EncoderCalibrator_Init(void)
 {
-    /* ¼ì²éFlashÖĞÊÇ·ñÓĞÓĞĞ§Ğ£×¼Êı¾İ£¨µÚÒ»¸ö×Ö²»ÊÇ0xFFFFÒ²²»ÊÇ0£©*/
+    /* æ£€æŸ¥Flashä¸­æ˜¯å¦æœ‰æœ‰æ•ˆæ ¡å‡†æ•°æ®ï¼ˆç¬¬ä¸€ä¸ªå­—ä¸æ˜¯0xFFFFä¹Ÿä¸æ˜¯0ï¼‰*/
     uint16_t first = cali_table[0];
     if (first != 0xFFFF && first != 0) {
         cali_is_calibrated = true;
@@ -344,9 +344,9 @@ void EncoderCalibrator_Init(void)
 }
 
 /**
- * @brief ´¥·¢±àÂëÆ÷Ğ£×¼
- * @details Ö»ÓĞÔÚÎ´Ğ£×¼ÇÒÎ´´¥·¢Ê±²Å»á¿ªÊ¼Ğ£×¼
- * @note Í¨³£ÓÉ°´Å¥°´ÏÂÊÂ¼şµ÷ÓÃ
+ * @brief è§¦å‘ç¼–ç å™¨æ ¡å‡†
+ * @details åªæœ‰åœ¨æœªæ ¡å‡†ä¸”æœªè§¦å‘æ—¶æ‰ä¼šå¼€å§‹æ ¡å‡†
+ * @note é€šå¸¸ç”±æŒ‰é’®æŒ‰ä¸‹äº‹ä»¶è°ƒç”¨
  */
 void EncoderCalibrator_Trigger(void)
 {
@@ -360,16 +360,16 @@ void EncoderCalibrator_Trigger(void)
 }
 
 /**
- * @brief 20kHz¸ßÆµÖĞ¶Ï´¦Àíº¯Êı
- * @details Ö´ĞĞĞ£×¼×´Ì¬»ú£¬¿ØÖÆµç»úÔË¶¯²¢²É¼¯±àÂëÆ÷Êı¾İ
- * @note ±ØĞëÔÚ20kHz¶¨Ê±Æ÷ÖĞ¶ÏÖĞµ÷ÓÃ£¨Ã¿50¦ÌsÒ»´Î£©
+ * @brief 20kHzé«˜é¢‘ä¸­æ–­å¤„ç†å‡½æ•°
+ * @details æ‰§è¡Œæ ¡å‡†çŠ¶æ€æœºï¼Œæ§åˆ¶ç”µæœºè¿åŠ¨å¹¶é‡‡é›†ç¼–ç å™¨æ•°æ®
+ * @note å¿…é¡»åœ¨20kHzå®šæ—¶å™¨ä¸­æ–­ä¸­è°ƒç”¨ï¼ˆæ¯50Î¼sä¸€æ¬¡ï¼‰
  */
 void EncoderCalibrator_Tick20kHz(void)
 {
     uint16_t raw;
     MT6816_UpdateAngle();
     switch (cali_state) {
-        case 0: /* ¿ÕÏĞ×´Ì¬£ºµÈ´ı´¥·¢ */
+        case 0: /* ç©ºé—²çŠ¶æ€ï¼šç­‰å¾…è§¦å‘ */
             if (cali_triggered) {
                 TB67H450_SetFocCurrentVector(go_pos, 2000);
                 go_pos = SUBDIVIDE_STEPS;
@@ -378,7 +378,7 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 1: /* ÕıÏò×¼±¸£ºÒÆ¶¯µ½ÆğÊ¼Î»ÖÃ */
+        case 1: /* æ­£å‘å‡†å¤‡ï¼šç§»åŠ¨åˆ°èµ·å§‹ä½ç½® */
             go_pos += AUTO_SPEED;
             TB67H450_SetFocCurrentVector(go_pos, 2000);
             if (go_pos == 2 * SUBDIVIDE_STEPS) {
@@ -387,12 +387,12 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 2: /* ÕıÏò²âÁ¿£ºÕı×ªÒ»È¦£¬²É¼¯Êı¾İ */
+        case 2: /* æ­£å‘æµ‹é‡ï¼šæ­£è½¬ä¸€åœˆï¼Œé‡‡é›†æ•°æ® */
             if ((go_pos % SOFT_DIVIDE) == 0) {
                 raw = MT6816_GetRawAngle();
                 sample_raw[sample_cnt++] = raw;
                 if (sample_cnt == SAMPLE_PER_STEP) {
-                    /* 16´Î²ÉÑùÈ¡Æ½¾ù£¬´æÈëÕıÏòÊı¾İÊı×é */
+                    /* 16æ¬¡é‡‡æ ·å–å¹³å‡ï¼Œå­˜å…¥æ­£å‘æ•°æ®æ•°ç»„ */
                     int idx = (go_pos - SUBDIVIDE_STEPS) / SOFT_DIVIDE;
                     sample_fwd[idx] = CycleDataAvg(sample_raw, SAMPLE_PER_STEP, ENC_RESOLUTION);
                     sample_cnt = 0;
@@ -407,7 +407,7 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 3: /* ·´Ïò·µ»Ø£º·µ»ØÆğµã¸½½ü */
+        case 3: /* åå‘è¿”å›ï¼šè¿”å›èµ·ç‚¹é™„è¿‘ */
             go_pos += FINE_SPEED;
             TB67H450_SetFocCurrentVector(go_pos, 2000);
             if (go_pos == 2 * SUBDIVIDE_STEPS + SOFT_DIVIDE * 20) { 
@@ -415,7 +415,7 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 4: /* Ïû³ı¼äÏ¶£º·´ÏòÒÆ¶¯Ïû³ı³İÂÖ¼äÏ¶ */
+        case 4: /* æ¶ˆé™¤é—´éš™ï¼šåå‘ç§»åŠ¨æ¶ˆé™¤é½¿è½®é—´éš™ */
             go_pos -= FINE_SPEED;
             TB67H450_SetFocCurrentVector(go_pos, 2000);
             if (go_pos == 2 * SUBDIVIDE_STEPS) {
@@ -423,12 +423,12 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 5: /* ·´Ïò²âÁ¿£º·´×ªÒ»È¦£¬²É¼¯Êı¾İ */
+        case 5: /* åå‘æµ‹é‡ï¼šåè½¬ä¸€åœˆï¼Œé‡‡é›†æ•°æ® */
             if ((go_pos % SOFT_DIVIDE) == 0) {
                 raw = MT6816_GetRawAngle();
                 sample_raw[sample_cnt++] = raw;
                 if (sample_cnt == SAMPLE_PER_STEP) {
-                    /* 16´Î²ÉÑùÈ¡Æ½¾ù£¬´æÈë·´ÏòÊı¾İÊı×é */
+                    /* 16æ¬¡é‡‡æ ·å–å¹³å‡ï¼Œå­˜å…¥åå‘æ•°æ®æ•°ç»„ */
                     int idx = (go_pos - SUBDIVIDE_STEPS) / SOFT_DIVIDE;
                     sample_rev[idx] = CycleDataAvg(sample_raw, SAMPLE_PER_STEP, ENC_RESOLUTION);
                     sample_cnt = 0;
@@ -443,33 +443,33 @@ void EncoderCalibrator_Tick20kHz(void)
             }
             break;
             
-        case 6: /* ¼ÆËã×´Ì¬£ºÍ£Ö¹µç»úÊä³ö */
+        case 6: /* è®¡ç®—çŠ¶æ€ï¼šåœæ­¢ç”µæœºè¾“å‡º */
             TB67H450_SetFocCurrentVector(0, 0);
             break;
     }
 }
 
 /**
- * @brief Ö÷Ñ­»·´¦Àíº¯Êı
- * @details ÔÚ¼ÆËã×´Ì¬ÏÂ£¬´¦ÀíÊı¾İ¼ì²é¡¢Éú³ÉĞ£×¼±í¡¢Ğ´ÈëFlash
- * @note ±ØĞëÔÚÖ÷Ñ­»·ÖĞÖÜÆÚĞÔµ÷ÓÃ
+ * @brief ä¸»å¾ªç¯å¤„ç†å‡½æ•°
+ * @details åœ¨è®¡ç®—çŠ¶æ€ä¸‹ï¼Œå¤„ç†æ•°æ®æ£€æŸ¥ã€ç”Ÿæˆæ ¡å‡†è¡¨ã€å†™å…¥Flash
+ * @note å¿…é¡»åœ¨ä¸»å¾ªç¯ä¸­å‘¨æœŸæ€§è°ƒç”¨
  */
 void EncoderCalibrator_TickMainLoop(void)
 {
     if (cali_state != 6) return;
-    /* ĞİÃßµç»ú */
+    /* ä¼‘çœ ç”µæœº */
     TB67H450_Sleep();
-    /* ¼ì²éÊı¾İÓĞĞ§ĞÔ */
+    /* æ£€æŸ¥æ•°æ®æœ‰æ•ˆæ€§ */
     CheckData();
-    /* Êı¾İÓĞĞ§ÔòÉú³ÉĞ£×¼±í */
+    /* æ•°æ®æœ‰æ•ˆåˆ™ç”Ÿæˆæ ¡å‡†è¡¨ */
     if (cali_error == 0) {
         GenerateTable();
     }
-    /* ÖØÖÃ×´Ì¬ */
+    /* é‡ç½®çŠ¶æ€ */
     cali_state = 0;
     cali_triggered = false;
     
-    /* Ğ£×¼³É¹¦£¬ÏµÍ³¸´Î» */
+    /* æ ¡å‡†æˆåŠŸï¼Œç³»ç»Ÿå¤ä½ */
     if (cali_error == 0) {
 			    uint16_t *p = (uint16_t *)STOCKPILE_APP_CALI_ADDR;
     printf("Flash check: [0]=%u, [1]=%u, [2]=%u\r\n", p[0], p[1], p[2]);
@@ -479,8 +479,8 @@ void EncoderCalibrator_TickMainLoop(void)
 }
 
 /**
- * @brief ¼ì²éÊÇ·ñÒÑÍê³ÉĞ£×¼
- * @return true=ÒÑĞ£×¼£¬false=Î´Ğ£×¼
+ * @brief æ£€æŸ¥æ˜¯å¦å·²å®Œæˆæ ¡å‡†
+ * @return true=å·²æ ¡å‡†ï¼Œfalse=æœªæ ¡å‡†
  */
 bool EncoderCalibrator_IsCalibrated(void)
 {
@@ -488,10 +488,10 @@ bool EncoderCalibrator_IsCalibrated(void)
 }
 
 /**
- * @brief »ñÈ¡Ğ£×¼ºóµÄ½Ç¶È
- * @param raw_angle Ô­Ê¼½Ç¶È£¨0-16383£©
- * @return Ğ£×¼ºóµÄ½Ç¶È
- * @note Èç¹ûÎ´Ğ£×¼£¬Ö±½Ó·µ»ØÔ­Ê¼½Ç¶È
+ * @brief è·å–æ ¡å‡†åçš„è§’åº¦
+ * @param raw_angle åŸå§‹è§’åº¦ï¼ˆ0-16383ï¼‰
+ * @return æ ¡å‡†åçš„è§’åº¦
+ * @note å¦‚æœæœªæ ¡å‡†ï¼Œç›´æ¥è¿”å›åŸå§‹è§’åº¦
  */
 uint16_t EncoderCalibrator_GetRectifiedAngle(uint16_t raw_angle)
 {
@@ -502,8 +502,8 @@ uint16_t EncoderCalibrator_GetRectifiedAngle(uint16_t raw_angle)
 }
 
 /**
- * @brief »ñÈ¡Ğ£×¼´¥·¢×´Ì¬
- * @return true=ÕıÔÚĞ£×¼£¬false=Î´´¥·¢
+ * @brief è·å–æ ¡å‡†è§¦å‘çŠ¶æ€
+ * @return true=æ­£åœ¨æ ¡å‡†ï¼Œfalse=æœªè§¦å‘
  */
 bool EncoderCalibrator_IsTriggered(void)
 {

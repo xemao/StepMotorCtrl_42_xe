@@ -1,7 +1,7 @@
 #include "led.h"
 #include "main.h"  
 
-/* ÄÚ²¿×´Ì¬±äÁ¿ */
+/* å†…éƒ¨çŠ¶æ€å˜é‡ */
 static uint32_t s_timer = 0;
 static uint32_t s_timer_heartbeat = 0;
 static uint32_t s_timer_blink = 0;
@@ -12,7 +12,7 @@ static uint8_t s_blink_num = 0;
 static uint8_t s_heartbeat_phase = 1;
 static uint8_t s_blink_phase = 1;
 
-/* ÄÚ²¿º¯Êı£ºÉèÖÃLED×´Ì¬ */
+/* å†…éƒ¨å‡½æ•°ï¼šè®¾ç½®LEDçŠ¶æ€ */
 static void LED_SetState(uint8_t id, bool state)
 {
     if (state) {
@@ -40,7 +40,7 @@ void LED_Init(void)
     s_heartbeat_phase = 1;
     s_blink_phase = 1;
     
-    /* ³õÊ¼×´Ì¬£ºÁ½µÆ¶¼Ãğ */
+    /* åˆå§‹çŠ¶æ€ï¼šä¸¤ç¯éƒ½ç­ */
     LED_SetState(0, false);
     LED_SetState(1, false);
 }
@@ -49,7 +49,7 @@ void LED_Tick(uint32_t time_elapse_millis, Motor_State_t state)
 {
     s_timer += time_elapse_millis;
 
-    /* ¸ù¾İµç»ú×´Ì¬ÉèÖÃLEDÄ£Ê½ */
+    /* æ ¹æ®ç”µæœºçŠ¶æ€è®¾ç½®LEDæ¨¡å¼ */
 		switch (state)
 		{
 				case STATE_NO_CALIB:    
@@ -84,7 +84,7 @@ void LED_Tick(uint32_t time_elapse_millis, Motor_State_t state)
 						break;
 		}
 		
-    /* LED0 (LED1): ĞÄÌø»ò³£ÁÁ/³£Ãğ¿ØÖÆ */
+    /* LED0 (LED1): å¿ƒè·³æˆ–å¸¸äº®/å¸¸ç­æ§åˆ¶ */
     if (s_motor_enable)
     {
         if (s_heartbeat_enable)
@@ -139,7 +139,7 @@ void LED_Tick(uint32_t time_elapse_millis, Motor_State_t state)
         LED_SetState(0, false);
     }
 
-    /* LED1 (LED2): ´íÎóÂëÉÁË¸¿ØÖÆ */
+    /* LED1 (LED2): é”™è¯¯ç é—ªçƒæ§åˆ¶ */
     switch (s_blink_phase)
     {
         case 1:

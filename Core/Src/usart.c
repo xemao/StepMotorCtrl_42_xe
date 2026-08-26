@@ -26,14 +26,14 @@
 #include <string.h>
 #include <stdio.h>
 
-/* ½ÓÊÕ»º³åÇø */
+/* æ¥æ”¶ç¼“å†²åŒº */
 volatile uint8_t rxLen = 0;
 uint8_t rx_buffer[BUFFER_SIZE] = {0};
 
-/* »Øµ÷º¯ÊıÖ¸Õë */
+/* å›è°ƒå‡½æ•°æŒ‡é’ˆ */
 void (*OnRecvEnd)(uint8_t* data, uint16_t len) = NULL;
 
-/* ·¢ËÍÍê³É±êÖ¾ */
+/* å‘é€å®Œæˆæ ‡å¿— */
 volatile bool tx_complete = true;
 /* USER CODE END 0 */
 
@@ -61,7 +61,7 @@ void MX_USART1_UART_Init(void)
 
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
     Uart_SetRxCallback(UartCmd_Process);
-    /* Æô¶¯ DMA ½ÓÊÕ */
+    /* å¯åŠ¨ DMA æ¥æ”¶ */
     HAL_UART_Receive_DMA(&huart1, rx_buffer, BUFFER_SIZE);
 }
 
@@ -166,23 +166,23 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-/* ÉèÖÃ½ÓÊÕ»Øµ÷ */
+/* è®¾ç½®æ¥æ”¶å›è°ƒ */
 void Uart_SetRxCallback(void (*callback)(uint8_t* data, uint16_t len))
 {
     OnRecvEnd  = callback;
 }
 
-/* ·¢ËÍÊı¾İ */
+/* å‘é€æ•°æ® */
 void Uart_Send(uint8_t* data, uint16_t len)
 {
-    /* µÈ´ıÉÏÒ»´Î·¢ËÍÍê³É */
+    /* ç­‰å¾…ä¸Šä¸€æ¬¡å‘é€å®Œæˆ */
     while (!tx_complete);
 
     tx_complete = false;
     HAL_UART_Transmit_DMA(&huart1, data, len);
 }
 
-/* ·¢ËÍ×Ö·û´® */
+/* å‘é€å­—ç¬¦ä¸² */
 void Uart_SendString(char* str)
 {
     Uart_Send((uint8_t*)str, strlen(str));
