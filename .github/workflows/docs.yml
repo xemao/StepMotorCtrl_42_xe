@@ -1,0 +1,82 @@
+# 生成 Doxygen API 文档并发布到 GitHub Pages
+#
+# 触发：推送到 master/main 且改动涉及 User/、Core/、Doxyfile 或本工作流；也支持手动触发。
+# 前置：首次使用需在仓库 Settings → Pages 中把 Source 设为 "GitHub Actions"（一次性）。
+#
+# 说明：CI 里用发行版自带的 doxygen（版本可能与本地不同），只需保证常用标签可用；
+#       若出现 "ignoring unknown tag" 之类的告警可忽略（WARN_AS_ERROR 为 NO）。
+name: Docs
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'User/**'
+      - 'Core/**'
+      - 'doxygen/Doxyfile'
+      - 'doxygen/mainpage.md'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个发布任务，避免并发部署互相覆盖
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 生成 HTML 文档
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Doxygen 与 Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: 打印版本（便于排查版本差异）
+        run: |
+          doxygen --version
+          dot -V
+
+      - name: 生成文档
+        run: |
+          # 在工程根目录执行；用 stdin 追加覆盖项，避免改动仓库内的 Doxyfile
+          {
+            cat doxygen/Doxyfile
+            echo "OUTPUT_DIRECTORY = _site"
+            echo "GENERATE_LATEX = NO"
+            echo "QUIET = YES"
+          } | doxygen -
+          # 防止将来改为按分支托管时 Jekyll 忽略以下划线开头的文件（doxygen 会生成 _xE8_*.html 之类）
+          touch _site/html/.nojekyll
+          echo "--- 生成结果预览 ---"
+          ls _site/html | head -n 20
+          test -f _site/html/index.html
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传站点产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site/html
+
+  deploy:
+    name: 发布到 GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4

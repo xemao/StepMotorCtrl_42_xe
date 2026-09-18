@@ -1,0 +1,52 @@
+# ==================== Doxygen 生成物 ====================
+# 只忽略生成目录；doxygen/Doxyfile、doxygen/mainpage.md、doxygen/docs/*.md 等手写文件需要纳入版本管理
+doxygen/html/
+doxygen/latex/
+doxygen/docs/*.html
+_site/
+
+# 本地试验/临时目录
+.rtftest/
+.verify-head/
+.verify-build/
+.pkg/
+.pkgverify/
+
+# ==================== 文档分发产物 ====================
+StepMotorCtrl_42_API_Doc_html.zip
+
+# ==================== 编辑器配置 ====================
+.vscode/
+
+# ==================== Keil MDK 编译中间产物 ====================
+# 保留工程文件（*.uvprojx / *.uvoptx / *.sct / startup_*.s / RTE/）与既有的 *.hex，
+# 其余编译输出不入库，避免每次编译产生大量 diff
+*.o
+*.crf
+*.d
+*.axf
+*.map
+*.lnp
+*.dep
+*.htm
+*.build_log.htm
+*.Bak
+*.uvguix.*
+JLinkLog.txt
+MDK-ARM/DebugConfig/
+# 散落在 MDK-ARM 根目录的生成式分散加载文件（真正的分散加载文件是 MDK-ARM/StepMotorCtrl_42/StepMotorCtrl_42.sct）
+MDK-ARM/*_StepMotorCtrl_42.sct
+
+# MDK v6（CSolution）转换实验产物；若日后正式迁移到 MDK v6，删除本段即可
+MDK-ARM/uv2csolution.log
+MDK-ARM/*.cproject.yml
+MDK-ARM/*.csolution.yml
+MDK-ARM/vcpkg-configuration.json
+
+# ==================== 生成的 API 文档站点 ====================
+# 由 doxygen + md2html.py 生成，CI 会自动构建并发布到 GitHub Pages
+StepMotorCtrl_42_API_Doc_html/
+
+# ==================== 本地固件产物 ====================
+# 固件二进制建议通过 GitHub Releases 分发，不随源码入库
+yibiao.hex
