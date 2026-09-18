@@ -56,26 +56,41 @@ jobs:
           dot -V
 
       - name: 安装 Doxygen ${{ env.DOXYGEN_VERSION }}
+        shell: bash
         run: |
+          # 注意：Actions 的 bash 默认带 -e，且这里又开了 pipefail。任何可能返回非零的命令
+          # （find 找不到目录、head 提前关闭管道导致上游 SIGPIPE）都必须放进 if 条件或加
+          # || true，否则会在启动瞬间静默失败（本步骤曾因此秒挂）。
           set -uo pipefail
           VER="${DOXYGEN_VERSION}"
           ROOT="$HOME/.local/doxygen-$VER"
+          BIN="$ROOT/bin/doxygen"
+          URL="https://github.com/doxygen/doxygen/releases/download/Release_${VER//./_}/doxygen-$VER.linux.bin.tar.gz"
 
-          # 兼容压缩包内部层级差异：直接定位 doxygen 可执行文件
-          find_bin() { find "$ROOT" -type f -name doxygen -perm -u+x 2>/dev/null | head -n 1; }
+          version_of() { "$1" --version 2>/dev/null | head -n 1 || true; }
+          # 可用 = 文件可执行 且 版本号与目标一致
+          usable() {
+            [ -x "$1" ] || return 1
+            case "$(version_of "$1")" in
+              "$VER"*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
 
-          BIN="$(find_bin)"
-          if [ -n "$BIN" ] && "$BIN" --version | grep -q "^$VER"; then
-            echo "缓存命中：$("$BIN" --version)"
+          if usable "$BIN"; then
+            echo "缓存命中：$(version_of "$BIN")"
           else
-            # GitHub Release 资产名形如 doxygen-1.18.0.linux.bin.tar.gz，tag 为 Release_1_18_0
-            URL="https://github.com/doxygen/doxygen/releases/download/Release_${VER//./_}/doxygen-$VER.linux.bin.tar.gz"
             echo "下载官方二进制：$URL"
             rm -rf "$ROOT"; mkdir -p "$ROOT"
             if curl -fsSL "$URL" -o /tmp/doxygen.tar.gz && tar -xzf /tmp/doxygen.tar.gz -C "$ROOT"; then
-              BIN="$(find_bin)"
-            else
-              echo "::warning::官方二进制下载/解压失败，回退到发行版 doxygen（版本可能与本地不同）"
+              if ! usable "$BIN"; then
+                # 压缩包内部层级与预期不同：在解压结果里兜底找一次
+                CAND="$(find "$ROOT" -type f -name doxygen -perm -u+x 2>/dev/null | head -n 1 || true)"
+                if [ -n "$CAND" ]; then BIN="$CAND"; fi
+              fi
+            fi
+            if ! usable "$BIN"; then
+              echo "::warning::官方二进制不可用（下载失败/目录结构不同/无法运行），回退到发行版 doxygen"
               rm -rf "$ROOT"
               sudo apt-get update
               sudo apt-get install -y doxygen
@@ -83,9 +98,16 @@ jobs:
             fi
           fi
 
-          echo "doxygen 可执行文件：$BIN"
+          echo "doxygen 实际使用：$(version_of "$BIN")（路径：$BIN）"
+          echo "DOXYGEN_BIN=$BIN" >> "$GITHUB_ENV"
           echo "$(dirname "$BIN")" >> "$GITHUB_PATH"
-          "$BIN" --version
+          {
+            echo "### Doxygen"
+            echo ""
+            echo "- 期望版本：\`$VER\`"
+            echo "- 实际版本：\`$(version_of "$BIN")\`"
+            echo "- 可执行文件：\`$BIN\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 生成文档
         run: |
@@ -99,7 +121,7 @@ jobs:
           # 防止将来改为按分支托管时 Jekyll 忽略以下划线开头的文件（doxygen 会生成 _xE8_*.html 之类）
           touch _site/html/.nojekyll
           echo "--- 生成结果预览 ---"
-          ls _site/html | head -n 20
+          ls _site/html | head -n 20 || true
           test -f _site/html/index.html
 
       - name: 配置 Pages
