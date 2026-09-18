@@ -1,10 +1,11 @@
 # 生成 Doxygen API 文档并发布到 GitHub Pages
 #
-# 触发：推送到 master/main 且改动涉及 User/、Core/、Doxyfile 或本工作流；也支持手动触发。
+# 触发：推送到 master/main 且改动涉及 User/、Core/、doxygen/ 下配置与文档；也支持手动触发。
 # 前置：首次使用需在仓库 Settings → Pages 中把 Source 设为 "GitHub Actions"（一次性）。
 #
-# 说明：CI 里用发行版自带的 doxygen（版本可能与本地不同），只需保证常用标签可用；
-#       若出现 "ignoring unknown tag" 之类的告警可忽略（WARN_AS_ERROR 为 NO）。
+# 版本一致性：CI 固定使用 env.DOXYGEN_VERSION 指定的 Doxygen 官方二进制（与本地开发一致，
+#             避免发行版版本差异导致输出不同）；资产下载/解压失败时自动回退发行版 doxygen，
+#             保证流水线不会因外网或资产变动而卡死。
 name: Docs
 
 on:
@@ -15,6 +16,7 @@ on:
       - 'Core/**'
       - 'doxygen/Doxyfile'
       - 'doxygen/mainpage.md'
+      - 'doxygen/README.md'
       - 'doxygen/docs/**'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
@@ -29,6 +31,10 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  # 与本地 `doxygen --version` 保持一致；升级本地版本时同步修改此处
+  DOXYGEN_VERSION: '1.18.0'
+
 jobs:
   build:
     name: 生成 HTML 文档
@@ -37,15 +43,49 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装 Doxygen 与 Graphviz
+      - name: 缓存 Doxygen 官方二进制
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/doxygen-${{ env.DOXYGEN_VERSION }}
+          key: doxygen-${{ runner.os }}-${{ env.DOXYGEN_VERSION }}
+
+      - name: 安装 Graphviz（生成包含关系图）
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
-
-      - name: 打印版本（便于排查版本差异）
-        run: |
-          doxygen --version
+          sudo apt-get install -y graphviz
           dot -V
+
+      - name: 安装 Doxygen ${{ env.DOXYGEN_VERSION }}
+        run: |
+          set -uo pipefail
+          VER="${DOXYGEN_VERSION}"
+          ROOT="$HOME/.local/doxygen-$VER"
+
+          # 兼容压缩包内部层级差异：直接定位 doxygen 可执行文件
+          find_bin() { find "$ROOT" -type f -name doxygen -perm -u+x 2>/dev/null | head -n 1; }
+
+          BIN="$(find_bin)"
+          if [ -n "$BIN" ] && "$BIN" --version | grep -q "^$VER"; then
+            echo "缓存命中：$("$BIN" --version)"
+          else
+            # GitHub Release 资产名形如 doxygen-1.18.0.linux.bin.tar.gz，tag 为 Release_1_18_0
+            URL="https://github.com/doxygen/doxygen/releases/download/Release_${VER//./_}/doxygen-$VER.linux.bin.tar.gz"
+            echo "下载官方二进制：$URL"
+            rm -rf "$ROOT"; mkdir -p "$ROOT"
+            if curl -fsSL "$URL" -o /tmp/doxygen.tar.gz && tar -xzf /tmp/doxygen.tar.gz -C "$ROOT"; then
+              BIN="$(find_bin)"
+            else
+              echo "::warning::官方二进制下载/解压失败，回退到发行版 doxygen（版本可能与本地不同）"
+              rm -rf "$ROOT"
+              sudo apt-get update
+              sudo apt-get install -y doxygen
+              BIN="$(command -v doxygen)"
+            fi
+          fi
+
+          echo "doxygen 可执行文件：$BIN"
+          echo "$(dirname "$BIN")" >> "$GITHUB_PATH"
+          "$BIN" --version
 
       - name: 生成文档
         run: |
