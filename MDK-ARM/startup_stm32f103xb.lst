@@ -461,14 +461,13 @@ ARM Macro Assembler    Page 8
 
               00000000 
               00000000 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
-ork --depend=stepmotorctrl_42\startup_stm32f103xb.d -ostepmotorctrl_42\startup_
-stm32f103xb.o -I.\RTE\_StepMotorCtrl_42 -IC:\Users\64153\AppData\Local\Arm\Pack
-s\ARM\CMSIS\5.8.0\CMSIS\Core\Include -IC:\Users\64153\AppData\Local\Arm\Packs\K
-eil\STM32F1xx_DFP\2.3.0\Device\Include --predefine="__MICROLIB SETA 1" --predef
-ine="__UVISION_VERSION SETA 536" --predefine="_RTE_ SETA 1" --predefine="STM32F
-10X_MD SETA 1" --predefine="_RTE_ SETA 1" --list=startup_stm32f103xb.lst startu
-p_stm32f103xb.s
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=stepmotorctrl_42\startup_stm32f103xb.d -ostepmotorctrl_42\startup_stm32f103x
+b.o -I.\RTE\_StepMotorCtrl_42 -ID:\Users\Administrator\AppData\Local\Arm\Packs\
+ARM\CMSIS\6.1.0\CMSIS\Core\Include -ID:\Users\Administrator\AppData\Local\Arm\P
+acks\Keil\STM32F1xx_DFP\2.4.1\Device\Include --predefine="__MICROLIB SETA 1" --
+predefine="__UVISION_VERSION SETA 540" --predefine="STM32F10X_MD SETA 1" --pred
+efine="_RTE_ SETA 1" --list=startup_stm32f103xb.lst startup_stm32f103xb.s
 
 
 
