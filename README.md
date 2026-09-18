@@ -18,7 +18,7 @@
 | 存储 | 片上 Flash 模拟 EEPROM：校准表 32KB @0x08007C00，用户配置 1KB @0x0800FC00 |
 | 人机交互 | 按键 PB12/PB2（上拉，低有效）；LED PA12（状态/心跳）、PA11（错误码闪烁） |
 
-接线参考 `接线图.JPG`，电机资料见 `42steper.pdf`。
+接线参考 `Hardware/接线图.JPG`，电机资料见 `Hardware/42steper.pdf`，硬件设计源文件见 `Hardware/Altium_步进电机驱动板_2026-05-27.zip`。
 
 ## 二、程序骨架（三条执行线）
 
@@ -46,6 +46,7 @@ User/           手写业务代码，按模块划分
 Drivers/        ST HAL 与 CMSIS 库（厂商代码，不纳入文档）
 MDK-ARM/        Keil MDK 工程（StepMotorCtrl_42.uvprojx）
 doxygen/        Doxyfile、mainpage.md 与文档源 markdown
+Hardware/       硬件资料：接线图、电机规格书、Altium 驱动板设计源文件
 .github/        GitHub Actions：自动构建并发布 API 文档到 Pages
 ```
 
@@ -165,4 +166,4 @@ git push origin release/v2 --tags
 - ⚠️ 若把本固件烧录进**对外销售的成品**（GPL 定义的 User Product），还需按第 6 节提供 Installation Information，使用户能刷入自己修改后的版本
 - ℹ️ GPL-3.0 **没有** AGPL 那样的"网络服务"条款：仅通过网络提供服务而不分发副本，不触发源码义务
 
-> **本项目不是 XDrive 官方版本**，与原作者的发布无关。以上为便于理解的归纳，不构成法律意见；正式商用前建议请法务确认。
+> **本项目不是 XDrive 官方版本**，与原作者的发布无关。
