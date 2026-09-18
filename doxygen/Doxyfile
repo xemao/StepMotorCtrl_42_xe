@@ -776,7 +776,8 @@ WARN_LOGFILE           =
 
 INPUT                  = User \
                          Core \
-                         doxygen/mainpage.md
+                         doxygen/mainpage.md \
+                         doxygen/README.md
 
 # 此标签可用于指定 Doxygen 解析的源文件的字符编码。Doxygen 内部使用 UTF-8 编码。Doxygen 使用 libiconv（或 libc
 # 内置的 iconv）进行转码。请参阅 libiconv 文档 (see:
@@ -956,7 +957,10 @@ USE_MDFILE_AS_MAINPAGE = doxygen/mainpage.md
 # 命令开头才能用作目录文档。
 # 默认值为： YES。
 
-IMPLICIT_DIR_DOCS      = YES
+# 置为 NO：否则本目录下的 README.md 会被当作"该目录的说明"而不生成独立页面，
+# 导致正文里无法链接到它。本项目的 README.md 是文档发布说明，需要作为页面出现在站点里。
+
+IMPLICIT_DIR_DOCS      = NO
 
 # Fortran 标准规定，对于固定格式的 Fortran 代码，从位置 72
 # 开始的所有字符都被视为注释。一个常见的扩展是允许在自动注释开始之前有更长的行。设置 FORTRAN_COMMENT_AFTER

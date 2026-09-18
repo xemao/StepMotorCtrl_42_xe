@@ -68,6 +68,7 @@ doxygen doxygen/Doxyfile
 ```
 
 CI 配置见 `.github/workflows/docs.yml`：推送到 master/main 时自动构建并发布到 GitHub Pages。
+文档的生成与发布细节（CI 固定 Doxygen 版本、PDF 与离线包的取舍、其他单文件形态）见 @ref doc_publish "文档生成与发布说明"。
 
 ## 七、许可
 
