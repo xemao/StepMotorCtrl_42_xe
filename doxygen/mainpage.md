@@ -20,7 +20,7 @@
 
 | 触发源 | 频率 | 入口 | 职责 |
 | --- | --- | --- | --- |
-| TIM4 更新中断 | **20 kHz** | `Tim4Callback20kHz()` | 编码器校准状态机 **或** 电机闭环（二选一） |
+| TIM4 更新中断 | <b>20 kHz</b> | `Tim4Callback20kHz()` | 编码器校准状态机 <b>或</b> 电机闭环（二选一） |
 | TIM1 更新中断 | 100 Hz | `Tim1Callback100Hz()` | 按键扫描（10ms 一次）、LED、遥测计数 |
 | USART1 IDLE 中断 | 按帧触发 | `UartCmd_Process()` | 上位机命令解析 |
 | 主循环 | 空闲 | `main()` 的 `while(1)` | 校准建表、配置保存/复位、遥测打印 |
@@ -44,19 +44,19 @@
 
 ## 四、数据单位约定（读代码时务必注意）
 
-- **位置**：内部单位是"细分步"（1 圈 = 51200 细分步 = 200 硬步 × 256 软细分），对外接口按"圈"
-- **速度**：内部 细分步/秒，对外接口"圈/秒"
-- **电流**：内部 mA（1000 = 1A），对外接口 A
-- **角度**：编码器原始角度 0~16383（14 位）；校准表中的"校正位置"是 0~51199（细分步），两者量纲不同
-- **时间**：20kHz 控制周期 = 50us；100Hz 交互任务周期 = 10ms
-- **电角度**：正弦表 1024 点/电周期，256 细分步 = 90° 电角度
+- <b>位置</b>：内部单位是"细分步"（1 圈 = 51200 细分步 = 200 硬步 × 256 软细分），对外接口按"圈"
+- <b>速度</b>：内部 细分步/秒，对外接口"圈/秒"
+- <b>电流</b>：内部 mA（1000 = 1A），对外接口 A
+- <b>角度</b>：编码器原始角度 0~16383（14 位）；校准表中的"校正位置"是 0~51199（细分步），两者量纲不同
+- <b>时间</b>：20kHz 控制周期 = 50us；100Hz 交互任务周期 = 10ms
+- <b>电角度</b>：正弦表 1024 点/电周期，256 细分步 = 90° 电角度
 
 ## 五、已知问题与待办
 
 - 所有 `@todo` 汇总在 @ref todo 页面；`@warning` 不单独成页，显示在对应文件/函数的说明段落里
-- **Flash 分区重叠风险**：`STOCKPILE_APP_FIRMWARE_SIZE`(47KB) 与 `APP_CALI`(@0x08007C00) 区间重叠 16KB，
+- <b>Flash 分区重叠风险</b>：`STOCKPILE_APP_FIRMWARE_SIZE`(47KB) 与 `APP_CALI`(@0x08007C00) 区间重叠 16KB，
   按 MDK map，正弦表 `sin_pi_m2`（0x08007676，长 0x802）跨越 0x08007C00 —— 详见 `User/EEPROM/stockpile_config.h` 文件头
-- **电流环没有实测反馈**：ADC 只被初始化，`s_foc_current` 是控制器算出的指令电流，电流通道实为开环电流矢量控制
+- <b>电流环没有实测反馈</b>：ADC 只被初始化，`s_foc_current` 是控制器算出的指令电流，电流通道实为开环电流矢量控制
 - `BoardConfig_t` 中 `defaultMode`、`enableMotorOnBoot`、`caliCurrent` 只写不读；CAN 收发未实现
 
 ## 六、如何重新生成文档
@@ -72,6 +72,6 @@ CI 配置见 `.github/workflows/docs.yml`：推送到 master/main 时自动构�
 
 ## 七、许可
 
-本项目是 [unlir/XDrive](https://github.com/unlir/XDrive) 的衍生作品，整体以 **GNU General Public License v3.0** 授权，
+本项目是 [unlir/XDrive](https://github.com/unlir/XDrive) 的衍生作品，整体以 <b>GNU General Public License v3.0</b> 授权，
 全文见工程根目录的 `LICENSE`。分发（含以固件形式提供二进制）时须一并提供对应源码，衍生作品亦须以 GPL-3.0 授权。
 `Core/` 中 CubeMX 生成部分为 ST BSD 3-Clause，`Drivers/` 为 ST HAL 与 ARM CMSIS（Apache-2.0 等），均与 GPL-3.0 兼容。
