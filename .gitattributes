@@ -1,0 +1,28 @@
+# 换行符统一策略
+# 仓库内一律保存 LF；检出时由 core.autocrlf / 各平台工具决定 CRLF 或 LF。
+# 这样 Windows（Keil MDK + Git Bash）与 CI（Linux 构建文档）之间不会来回翻转整个文件。
+* text=auto
+
+# 二进制文件禁止任何换行符转换（避免损坏）
+*.zip    binary
+*.rar    binary
+*.7z     binary
+*.pdf    binary
+*.jpg    binary
+*.JPG    binary
+*.jpeg   binary
+*.png    binary
+*.gif    binary
+*.bmp    binary
+*.ico    binary
+*.axf    binary
+*.o      binary
+*.crf    binary
+*.uvguix.* binary
+
+# 文本但格式敏感的工程/清单文件，显式声明避免歧义
+*.uvprojx   text
+*.uvoptx    text
+*.hex       text
+*.sct       text
+*.lst       text
