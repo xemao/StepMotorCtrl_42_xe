@@ -68,3 +68,9 @@ doxygen doxygen/Doxyfile
 ```
 
 CI 配置见 `.github/workflows/docs.yml`：推送到 master/main 时自动构建并发布到 GitHub Pages。
+
+## 七、许可
+
+本项目是 [unlir/XDrive](https://github.com/unlir/XDrive) 的衍生作品，整体以 **GNU General Public License v3.0** 授权，
+全文见工程根目录的 `LICENSE`。分发（含以固件形式提供二进制）时须一并提供对应源码，衍生作品亦须以 GPL-3.0 授权。
+`Core/` 中 CubeMX 生成部分为 ST BSD 3-Clause，`Drivers/` 为 ST HAL 与 ARM CMSIS（Apache-2.0 等），均与 GPL-3.0 兼容。

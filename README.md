@@ -144,7 +144,25 @@ git push origin release/v2 --tags
 
 ## 九、来源与许可
 
-- 由开源项目 **XDrive** 改造而来
-- `Core/` 中 CubeMX 生成的部分版权归 STMicroelectronics，采用 BSD 3-Clause License
-- `Drivers/` 为 ST HAL 与 ARM CMSIS 厂商代码，遵循各自原始许可（见 `Drivers/CMSIS/LICENSE.txt`）
-- 本仓库尚未添加顶层 `LICENSE` 文件，如需开源请自行补充
+本项目是开源项目 **XDrive** 的衍生作品，因此**整体以 GNU General Public License v3.0 授权**，全文见 [`LICENSE`](LICENSE)。
+
+| 部分 | 来源 | 许可 |
+| --- | --- | --- |
+| 整体工程 | 本项目 | **GPL-3.0** |
+| 上游基础 | [unlir/XDrive](https://github.com/unlir/XDrive)（unlir / 知不知啊） | GPL-3.0 |
+| `Core/` 中 CubeMX 生成部分 | STMicroelectronics | BSD 3-Clause |
+| `Drivers/` | ST HAL、ARM CMSIS | Apache-2.0 等，见 `Drivers/CMSIS/LICENSE.txt` |
+
+后两者的宽松许可与 GPL-3.0 兼容，可以一并打包分发。
+
+### 这意味着什么
+
+- ✅ 可以自由使用、修改、分发，**包括商业用途**
+- ✅ 分发时可以收费，也可以提供付费支持
+- ⚠️ 分发时必须**一并提供完整对应源码**（Corresponding Source）——包括以固件/成品板形式交付二进制的情况
+- ⚠️ 必须保留版权与许可声明，并**标明你做了修改**
+- ⚠️ 你的衍生作品也必须以 GPL-3.0 授权，**不能改成 MIT/Apache 等宽松协议，也不能闭源**
+- ⚠️ 若把本固件烧录进**对外销售的成品**（GPL 定义的 User Product），还需按第 6 节提供 Installation Information，使用户能刷入自己修改后的版本
+- ℹ️ GPL-3.0 **没有** AGPL 那样的"网络服务"条款：仅通过网络提供服务而不分发副本，不触发源码义务
+
+> **本项目不是 XDrive 官方版本**，与原作者的发布无关。以上为便于理解的归纳，不构成法律意见；正式商用前建议请法务确认。
